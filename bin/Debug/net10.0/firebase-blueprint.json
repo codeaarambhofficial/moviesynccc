@@ -1,0 +1,43 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile in MovieSync",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Room": {
+      "title": "Room",
+      "description": "Sync watch room session data",
+      "type": "object",
+      "properties": {
+        "roomId": { "type": "string" },
+        "hostName": { "type": "string" },
+        "hostConnectionId": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "videoTitle": { "type": "string" },
+        "currentTime": { "type": "number" },
+        "isPlaying": { "type": "boolean" },
+        "isLocked": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["roomId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profile collection"
+    },
+    "/rooms/{roomId}": {
+      "schema": { "$ref": "#/entities/Room" },
+      "description": "Movie sync rooms collection"
+    }
+  }
+}
