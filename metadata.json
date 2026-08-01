@@ -1,0 +1,6 @@
+{
+  "name": "MovieSync",
+  "description": "Real-time movie watching and synchronization app built with ASP.NET Core, SignalR, and Razor Pages.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

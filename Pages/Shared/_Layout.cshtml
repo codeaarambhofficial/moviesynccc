@@ -1,0 +1,162 @@
+﻿<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - MovieSync</title>
+    
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap CSS & Icons -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/MovieSync.Web.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="sticky-top">
+        <nav class="navbar navbar-expand-md navbar-dark custom-navbar py-3 border-bottom border-light border-opacity-10">
+            <div class="container-fluid px-4">
+                <a class="navbar-brand d-flex align-items-center gap-2" href="/Room">
+                    <i class="bi bi-film text-gradient-primary fs-3"></i>
+                    <span class="fw-bold tracking-tight bg-gradient-text fs-4">MovieSync</span>
+                </a>
+                
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                <div class="collapse navbar-collapse" id="navbarContent">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <ul class="navbar-nav me-auto mb-2 mb-md-0 ms-md-3">
+                            <li class="nav-item">
+                                <a class="nav-link px-3 active d-flex align-items-center gap-2" href="/Room">
+                                    <i class="bi bi-play-circle-fill"></i> Watch Room
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="d-flex align-items-center ms-auto gap-3">
+                            <span class="user-badge px-3 py-1.5 rounded-pill d-flex align-items-center gap-2">
+                                <i class="bi bi-person-circle text-primary"></i>
+                                <span class="small fw-semibold">@User.Identity.Name?.Split('@')[0]</span>
+                            </span>
+                            
+                            <button class="btn btn-logout d-flex align-items-center gap-2 px-3 py-1.5 rounded-pill" onclick="logoutUser()">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </button>
+                            
+                            <button class="theme-toggle-btn" onclick="toggleDarkMode()" title="Toggle Theme">
+                                <i class="bi bi-moon-stars" id="theme-icon"></i>
+                            </button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex align-items-center ms-auto">
+                            <button class="theme-toggle-btn" onclick="toggleDarkMode()" title="Toggle Theme">
+                                <i class="bi bi-moon-stars" id="theme-icon"></i>
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="app-body">
+        <main role="main">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="custom-footer border-top border-light border-opacity-10 py-4 mt-5">
+        <div class="container text-center">
+            <div class="d-flex justify-content-center align-items-center gap-2 mb-2">
+                <i class="bi bi-film text-primary"></i>
+                <span class="fw-bold">MovieSync</span>
+            </div>
+            <p class="text-muted small mb-0">&copy; 2026 - Synchronized Real-time Theatre. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Firebase SDK Initialization -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+        const firebaseConfig = {
+            apiKey: "ATzaSyBs7Km8Jonz3dkwJfRmTrtXJkyodNlTMM",
+            authDomain: "moviesync-8161e.firebaseapp.com",
+            projectId: "moviesync-8161e",
+            storageBucket: "moviesync-8161e.firebasestorage.app",
+            messagingSenderId: "437472356973",
+            appId: "1:43742356973:web:1ef939/3eb44a1b89dad64",
+            measurementId: "G-LNS37ZGHNY"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        console.log("Firebase initialized successfully on client!");
+    </script>
+
+    <!-- Global App Shell Scripts -->
+    <script>
+        async function logoutUser() {
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    window.location.href = '/Login';
+                } else {
+                    alert('Logout failed.');
+                }
+            } catch (err) {
+                console.error(err);
+                window.location.href = '/Login';
+            }
+        }
+
+        function toggleDarkMode() {
+            const currentTheme = document.documentElement.getAttribute("data-theme");
+            const newTheme = currentTheme === "dark" ? "light" : "dark";
+            document.documentElement.setAttribute("data-theme", newTheme);
+            localStorage.setItem("theme", newTheme);
+            updateThemeIcon(newTheme);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = document.getElementById("theme-icon");
+            if (!icon) return;
+            if (theme === "dark") {
+                icon.className = "bi bi-sun-fill text-warning";
+            } else {
+                icon.className = "bi bi-moon-stars-fill text-muted";
+            }
+        }
+
+        const savedTheme = localStorage.getItem("theme") || "dark";
+        document.documentElement.setAttribute("data-theme", savedTheme);
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            updateThemeIcon(savedTheme);
+        });
+    </script>
+
+    <!-- Load site.js FIRST so window.loginWithEmail is ready globally -->
+    <script src="~/js/site.js" type="module" asp-append-version="true"></script>
+
+    <!-- Then render page-specific scripts -->
+    @await RenderSectionAsync("Scripts", required: false)
+
+</body>
+</html>
