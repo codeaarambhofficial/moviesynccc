@@ -14,16 +14,34 @@ if (File.Exists(envPath))
 }
 builder.Configuration.AddEnvironmentVariables();
 
-// Initialize Firebase Admin SDK — supports either a local file (dev) 
-// or a JSON string from an environment variable (production/Render)
+// Initialize Firebase Admin SDK
 try
 {
+    string projectId = "moviesync-9bcef";
+    var configPath = Path.Combine(builder.Environment.ContentRootPath, "firebase-applet-config.json");
+    if (File.Exists(configPath))
+    {
+        var configJson = File.ReadAllText(configPath);
+        using var doc = System.Text.Json.JsonDocument.Parse(configJson);
+        if (doc.RootElement.TryGetProperty("projectId", out var projProp) && !string.IsNullOrEmpty(projProp.GetString()))
+        {
+            projectId = projProp.GetString()!;
+        }
+    }
+
     GoogleCredential? firebaseCredential = null;
     var firebaseJsonEnv = Environment.GetEnvironmentVariable("FIREBASE_CREDENTIALS_JSON");
 
     if (!string.IsNullOrEmpty(firebaseJsonEnv))
     {
-        firebaseCredential = GoogleCredential.FromAccessToken(firebaseJsonEnv); // or json
+        try
+        {
+            firebaseCredential = GoogleCredential.FromJson(firebaseJsonEnv);
+        }
+        catch (Exception jsonEx)
+        {
+            Console.WriteLine($"Could not parse FIREBASE_CREDENTIALS_JSON: {jsonEx.Message}");
+        }
     }
     else
     {
@@ -34,12 +52,18 @@ try
         }
     }
 
-    if (firebaseCredential != null && FirebaseApp.DefaultInstance == null)
+    if (FirebaseApp.DefaultInstance == null)
     {
-        FirebaseApp.Create(new AppOptions()
+        var appOptions = new AppOptions
         {
-            Credential = firebaseCredential
-        });
+            ProjectId = projectId
+        };
+        if (firebaseCredential != null)
+        {
+            appOptions.Credential = firebaseCredential;
+        }
+
+        FirebaseApp.Create(appOptions);
     }
 }
 catch (Exception ex)
