@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "MovieSync ASP.NET Core Application",
   "scripts": {
-    "dev": "dotnet run --urls http://0.0.0.0:3000",
-    "start": "dotnet run --urls http://0.0.0.0:3000",
-    "build": "dotnet build"
+    "dev": "/usr/local/bin/dotnet run --urls http://0.0.0.0:3000",
+    "start": "/usr/local/bin/dotnet run --urls http://0.0.0.0:3000",
+    "build": "/usr/local/bin/dotnet build"
   }
 }
