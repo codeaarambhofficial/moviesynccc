@@ -139,6 +139,55 @@
                 </div>
             </div>
 
+            <!-- Media Streaming & Track Control Bar -->
+            <div class="glass-panel p-2.5 px-3 mb-3 d-flex flex-wrap align-items-center justify-content-between gap-2 border border-white border-opacity-10 rounded-3">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span id="stream-status-badge" class="badge bg-success bg-opacity-20 text-success border border-success border-opacity-30 px-2.5 py-1.5 rounded-pill d-flex align-items-center gap-1.5 small">
+                        <i class="bi bi-broadcast text-danger animate-pulse"></i> <span id="stream-status-text">HLS Media Stream Active</span>
+                    </span>
+                    <span id="now-playing-badge" class="text-light small fw-medium text-truncate" style="max-width: 280px;" title="Current Title">
+                        <i class="bi bi-film text-warning me-1"></i> <span id="active-video-title">No Video Loaded</span>
+                    </span>
+                </div>
+                
+                <div class="d-flex align-items-center gap-2 flex-wrap ms-auto">
+                    <!-- Audio Track Selector -->
+                    <div class="dropdown" id="audio-track-dropdown-container">
+                        <button class="btn btn-dark btn-sm rounded-pill px-2.5 py-1 text-muted border border-secondary border-opacity-20 dropdown-toggle small d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" id="audio-track-btn">
+                            <i class="bi bi-volume-up-fill text-info"></i> Audio Track
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow" id="audio-track-menu">
+                            <li><a class="dropdown-item active small" href="javascript:void(0)" onclick="selectAudioTrack(-1)">Default Audio</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Subtitle Track Selector -->
+                    <div class="dropdown" id="sub-track-dropdown-container">
+                        <button class="btn btn-dark btn-sm rounded-pill px-2.5 py-1 text-muted border border-secondary border-opacity-20 dropdown-toggle small d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" id="sub-track-btn">
+                            <i class="bi bi-cc-square-fill text-warning"></i> Subtitles
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow" id="sub-track-menu">
+                            <li><a class="dropdown-item active small" href="javascript:void(0)" onclick="selectSubtitleTrack(-1)">Off</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Playback Speed Selector -->
+                    <div class="dropdown">
+                        <button class="btn btn-dark btn-sm rounded-pill px-2.5 py-1 text-muted border border-secondary border-opacity-20 dropdown-toggle small d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" id="speed-btn">
+                            <i class="bi bi-speedometer2 text-primary"></i> <span id="speed-label">1.0x</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow">
+                            <li><a class="dropdown-item small" href="javascript:void(0)" onclick="changePlaybackSpeed(0.5)">0.5x</a></li>
+                            <li><a class="dropdown-item small" href="javascript:void(0)" onclick="changePlaybackSpeed(0.75)">0.75x</a></li>
+                            <li><a class="dropdown-item active small" href="javascript:void(0)" onclick="changePlaybackSpeed(1.0)">1.0x (Normal)</a></li>
+                            <li><a class="dropdown-item small" href="javascript:void(0)" onclick="changePlaybackSpeed(1.25)">1.25x</a></li>
+                            <li><a class="dropdown-item small" href="javascript:void(0)" onclick="changePlaybackSpeed(1.5)">1.5x</a></li>
+                            <li><a class="dropdown-item small" href="javascript:void(0)" onclick="changePlaybackSpeed(2.0)">2.0x</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
             <!-- WebRTC Live Video Calling Section -->
             <div id="webrtc-calling-section" class="glass-panel p-3 mb-3 d-none">
                 <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
@@ -648,15 +697,15 @@ document.getElementById("select-local-file-btn").addEventListener("click", () =>
 });
 
 document.getElementById("host-stream-btn").addEventListener("click", async () => {
-    const pathInput = document.getElementById("host-stream-path").value;
+    const pathInput = document.getElementById("host-stream-path").value.trim();
     if (!pathInput) return showToast("error", "Please enter a valid file path.");
     if (isLocked && !isHost) return showToast("error", "Only the room host can change videos.");
 
     try {
-        const response = await fetch('/api/stream/host', {
+        const response = await fetch('/api/stream/register-path', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filePath: pathInput })
+            body: JSON.stringify({ filePath: pathInput, roomId: currentRoom })
         });
         if (!response.ok) {
             const errText = await response.text();
@@ -667,7 +716,7 @@ document.getElementById("host-stream-btn").addEventListener("click", async () =>
         // Host streams it directly
         const title = pathInput.split(/[\\/]/).pop();
         if (isHost) {
-            connection.invoke("ChangeVideo", currentRoom, data.streamUrl, title, 0.0);
+            connection.invoke("ChangeVideo", currentRoom, data.hlsUrl || data.streamUrl, title, 0.0);
         }
         showToast("success", "Media streaming started successfully!");
     } catch (err) {
@@ -676,7 +725,7 @@ document.getElementById("host-stream-btn").addEventListener("click", async () =>
     }
 });
 
-document.getElementById("local-file-input").addEventListener("change", (e) => {
+document.getElementById("local-file-input").addEventListener("change", async (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
 
@@ -696,8 +745,71 @@ document.getElementById("local-file-input").addEventListener("change", (e) => {
         badge.classList.remove("d-none");
     }
 
-    loadLocalFileStream(objectUrl, fileName);
+    // Play locally for host immediately (zero latency)
+    loadLocalFileStream(objectUrl, fileName, file.size);
+
+    // Stream to participants via backend pipeline if host
+    if (isHost && currentRoom) {
+        uploadAndStreamFile(file);
+    }
 });
+
+async function uploadAndStreamFile(file) {
+    try {
+        const badge = document.getElementById("selected-file-badge");
+        const nameEl = document.getElementById("selected-file-name");
+        if (badge && nameEl) {
+            nameEl.innerText = `Preparing media stream... (0%)`;
+            badge.classList.remove("d-none");
+        }
+
+        const initRes = await fetch('/api/stream/init-chunked', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fileName: file.name, roomId: currentRoom })
+        });
+
+        if (!initRes.ok) throw new Error("Failed to initialize stream session");
+        const { streamId } = await initRes.json();
+
+        // Broadcast HLS stream URL to participants
+        const streamUrl = `/api/stream/hls/${streamId}/playlist.m3u8`;
+        connection.invoke("ChangeVideo", currentRoom, streamUrl, file.name, html5Player.currentTime || 0.0);
+
+        const chunkSize = 2 * 1024 * 1024; // 2MB chunk
+        const totalChunks = Math.ceil(file.size / chunkSize);
+
+        for (let i = 0; i < totalChunks; i++) {
+            const start = i * chunkSize;
+            const end = Math.min(file.size, start + chunkSize);
+            const chunk = file.slice(start, end);
+            const isLast = (i === totalChunks - 1);
+
+            const formData = new FormData();
+            formData.append("streamId", streamId);
+            formData.append("isLast", isLast ? "true" : "false");
+            formData.append("file", chunk, file.name);
+
+            const uploadRes = await fetch('/api/stream/upload-chunk', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!uploadRes.ok) {
+                console.warn(`Chunk ${i} upload status warning`);
+            }
+
+            const pct = Math.round(((i + 1) / totalChunks) * 100);
+            if (nameEl) nameEl.innerText = `Streaming to room... (${pct}%)`;
+        }
+
+        if (nameEl) nameEl.innerText = `Live Stream Active: ${file.name}`;
+        showToast("success", "Media streaming active for all room participants!");
+    } catch (err) {
+        console.error("uploadAndStreamFile error:", err);
+        showToast("error", "Stream upload error: " + err.message);
+    }
+}
 
 function loadLocalFileStream(blobUrl, fileName, fileSize = 0) {
     toggleLoading(true, "Loading Local Video...");
@@ -908,6 +1020,28 @@ connection.on("UserLoadedMedia", (username, title) => {
     showToast("success", `${username} loaded local file: ${title}`);
 });
 
+connection.on("PlaybackSpeedChanged", (speed) => {
+    isIncomingEvent = true;
+    if (html5Player && html5Player.style.display !== "none") {
+        html5Player.playbackRate = speed;
+        const speedLabel = document.getElementById("speed-label");
+        if (speedLabel) speedLabel.innerText = speed + "x";
+    }
+    setTimeout(() => isIncomingEvent = false, 500);
+});
+
+connection.on("SubtitleTrackChanged", (trackIndex) => {
+    if (hlsInstance) {
+        hlsInstance.subtitleTrack = trackIndex;
+    }
+});
+
+connection.on("AudioTrackChanged", (trackIndex) => {
+    if (hlsInstance) {
+        hlsInstance.audioTrack = trackIndex;
+    }
+});
+
 connection.on("VideoSought", (time) => {
     isIncomingEvent = true;
     seekPlayerTo(time);
@@ -1022,6 +1156,58 @@ function resetAllPlayers() {
     if (promptOverlay) promptOverlay.classList.add("d-none");
 }
 
+function changePlaybackSpeed(speed) {
+    if (html5Player && html5Player.style.display !== "none") {
+        html5Player.playbackRate = speed;
+        const speedLabel = document.getElementById("speed-label");
+        if (speedLabel) speedLabel.innerText = speed + "x";
+        if (isHost && currentRoom) {
+            connection.invoke("SetPlaybackSpeed", currentRoom, speed).catch(err => console.log("SetPlaybackSpeed error:", err));
+        }
+        showToast("info", `Playback speed set to ${speed}x`);
+    }
+}
+
+function selectAudioTrack(index) {
+    if (hlsInstance) {
+        hlsInstance.audioTrack = index;
+        if (currentRoom) {
+            connection.invoke("SelectAudioTrack", currentRoom, index).catch(err => console.log("SelectAudioTrack error:", err));
+        }
+        showToast("info", "Audio track updated");
+    }
+}
+
+function selectSubtitleTrack(index) {
+    if (hlsInstance) {
+        hlsInstance.subtitleTrack = index;
+        if (currentRoom) {
+            connection.invoke("SelectSubtitleTrack", currentRoom, index).catch(err => console.log("SelectSubtitleTrack error:", err));
+        }
+        showToast("info", "Subtitle track updated");
+    }
+}
+
+function updateTrackDropdowns(audioTracks, subtitleTracks) {
+    const audioMenu = document.getElementById("audio-track-menu");
+    if (audioMenu && audioTracks && audioTracks.length > 0) {
+        audioMenu.innerHTML = `<li><a class="dropdown-item active small" href="javascript:void(0)" onclick="selectAudioTrack(-1)">Default Audio</a></li>`;
+        audioTracks.forEach((tr, i) => {
+            const lang = tr.lang || tr.name || `Track ${i + 1}`;
+            audioMenu.innerHTML += `<li><a class="dropdown-item small" href="javascript:void(0)" onclick="selectAudioTrack(${i})">${lang}</a></li>`;
+        });
+    }
+
+    const subMenu = document.getElementById("sub-track-menu");
+    if (subMenu && subtitleTracks && subtitleTracks.length > 0) {
+        subMenu.innerHTML = `<li><a class="dropdown-item active small" href="javascript:void(0)" onclick="selectSubtitleTrack(-1)">Off</a></li>`;
+        subtitleTracks.forEach((tr, i) => {
+            const lang = tr.lang || tr.name || `Subtitle ${i + 1}`;
+            subMenu.innerHTML += `<li><a class="dropdown-item small" href="javascript:void(0)" onclick="selectSubtitleTrack(${i})">${lang}</a></li>`;
+        });
+    }
+}
+
 function handleVideoSwitch(url, title, notifyServer = false, startTime = 0) {
     resetAllPlayers();
 
@@ -1062,10 +1248,16 @@ function handleVideoSwitch(url, title, notifyServer = false, startTime = 0) {
         return;
     }
 
-    // External streams (YouTube, HLS, direct link)
+    // External streams or internal HLS / Range streams
     const ytId = extractYtId(url);
+    const statusBadge = document.getElementById("stream-status-badge");
+    const statusText = document.getElementById("stream-status-text");
 
     if (ytId) {
+        if (statusBadge && statusText) {
+            statusBadge.className = "badge bg-danger bg-opacity-20 text-danger border border-danger border-opacity-30 px-2.5 py-1.5 rounded-pill d-flex align-items-center gap-1.5 small";
+            statusText.innerText = "YouTube Stream";
+        }
         const wrapper = getYtWrapper();
         if (wrapper) wrapper.style.display = "block";
         if (isPlayerReady && ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
@@ -1073,14 +1265,62 @@ function handleVideoSwitch(url, title, notifyServer = false, startTime = 0) {
         } else {
             pendingVideo = { url: url, title: title, startTime: startTime };
         }
-    } else if (url.match(/\.m3u8($|\?)/i)) {
+    } else if (url.includes("/hls/") || url.match(/\.m3u8($|\?)/i)) {
         html5Player.style.display = "block";
+        if (statusBadge && statusText) {
+            statusBadge.className = "badge bg-success bg-opacity-20 text-success border border-success border-opacity-30 px-2.5 py-1.5 rounded-pill d-flex align-items-center gap-1.5 small";
+            statusText.innerText = "HLS Adaptive Stream Active";
+        }
+
         if (Hls.isSupported()) {
-            hlsInstance = new Hls();
+            hlsInstance = new Hls({
+                maxBufferLength: 30,
+                maxMaxBufferLength: 60,
+                maxBufferSize: 60 * 1024 * 1024,
+                backBufferLength: 30,
+                enableWorker: true,
+                lowLatencyMode: false,
+                fragLoadingTimeOut: 20000,
+                fragLoadingMaxRetry: 6,
+                fragLoadingRetryDelay: 1000
+            });
+
             hlsInstance.loadSource(url);
             hlsInstance.attachMedia(html5Player);
-            hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+
+            hlsInstance.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
                 if (startTime > 0) html5Player.currentTime = startTime;
+                updateTrackDropdowns(data.audioTracks, data.subtitleTracks);
+                const hostIsPlaying = lastReceivedState?.isPlaying !== undefined ? lastReceivedState.isPlaying : lastReceivedState?.IsPlaying;
+                if (hostIsPlaying) {
+                    html5Player.play().catch(e => console.log("HLS play caught:", e));
+                }
+            });
+
+            hlsInstance.on(Hls.Events.ERROR, (event, data) => {
+                if (data.fatal) {
+                    switch (data.type) {
+                        case Hls.ErrorTypes.NETWORK_ERROR:
+                            console.log("HLS network error, retrying...");
+                            hlsInstance.startLoad();
+                            break;
+                        case Hls.ErrorTypes.MEDIA_ERROR:
+                            console.log("HLS media error, recovering...");
+                            hlsInstance.recoverMediaError();
+                            break;
+                        default:
+                            console.log("HLS fatal error, falling back to progressive range stream...");
+                            if (hlsInstance) {
+                                hlsInstance.destroy();
+                                hlsInstance = null;
+                            }
+                            const fallbackUrl = url.replace('/hls/', '/play/').replace('/playlist.m3u8', '');
+                            html5Player.src = fallbackUrl;
+                            if (startTime > 0) html5Player.currentTime = startTime;
+                            html5Player.play().catch(e => console.log("Fallback play caught:", e));
+                            break;
+                    }
+                }
             });
         } else if (html5Player.canPlayType('application/vnd.apple.mpegurl')) {
             html5Player.src = url;
@@ -1088,6 +1328,10 @@ function handleVideoSwitch(url, title, notifyServer = false, startTime = 0) {
         }
     } else if (url.match(/\.(mp4|mkv|webm|avi|mov|ogg)(\?.*)?$/i) || url.includes('/api/stream/')) {
         html5Player.style.display = "block";
+        if (statusBadge && statusText) {
+            statusBadge.className = "badge bg-info bg-opacity-20 text-info border border-info border-opacity-30 px-2.5 py-1.5 rounded-pill d-flex align-items-center gap-1.5 small";
+            statusText.innerText = "Range Request Media Stream";
+        }
         html5Player.src = url;
         if (startTime > 0) html5Player.currentTime = startTime;
         html5Player.play().catch(e => console.log("Autoplay caught:", e));
