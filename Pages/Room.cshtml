@@ -104,123 +104,148 @@
                 </div>
             </div>
 
-            <!-- Ambient Video Screen Frame -->
-            <div class="player-wrapper mb-3">
-                <div class="ratio ratio-16x9 position-relative">
-                    <div id="player-container" class="w-100 h-100 position-absolute top-0 start-0 bg-black overflow-hidden">
-                        <div id="youtube-player-wrapper" class="w-100 h-100 position-absolute top-0 start-0" style="display: none;"><div id="youtube-player" class="w-100 h-100"></div></div>
-                        <video id="html5-player" controls class="w-100 h-100 position-absolute top-0 start-0" style="display: none;">
-                            Your browser does not support HTML5 video player playback.
-                        </video>
-                        <iframe id="iframe-player" class="w-100 h-100 position-absolute top-0 start-0 border-0" style="display: none;" allowfullscreen></iframe>
-
-                    </div>
-
-                    <!-- Floating Reactions Overlay Canvas/Container -->
-                    <div id="floating-reactions" style="position: absolute; bottom: 60px; right: 30px; pointer-events: none; z-index: 1000; width: 100%; height: 80%;"></div>
-                </div>
-            </div>
-
-            <!-- Media Streaming & Track Control Bar -->
-            <div class="glass-panel p-2.5 px-3 mb-3 d-flex flex-wrap align-items-center justify-content-between gap-2 border border-white border-opacity-10 rounded-3">
-                <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <span id="stream-status-badge" class="badge bg-success bg-opacity-20 text-success border border-success border-opacity-30 px-2.5 py-1.5 rounded-pill d-flex align-items-center gap-1.5 small">
-                        <i class="bi bi-broadcast text-danger animate-pulse"></i> <span id="stream-status-text">Ready to Sync</span>
-                    </span>
-                    <span id="now-playing-badge" class="text-light small fw-medium text-truncate" style="max-width: 280px;" title="Current Title">
-                        <i class="bi bi-film text-warning me-1"></i> <span id="active-video-title">No Video Loaded</span>
-                    </span>
-                </div>
+            <!-- Theater Main Grid (Player & Video Call Side-by-Side on Desktop, split top/bottom on Mobile) -->
+            <div class="theater-main-view mb-3">
                 
-                <div class="d-flex align-items-center gap-2 flex-wrap ms-auto">
-                    <!-- Audio Track Selector -->
-                    <div class="dropdown" id="audio-track-dropdown-container">
-                        <button class="btn btn-dark btn-sm rounded-pill px-2.5 py-1 text-light border border-secondary border-opacity-20 dropdown-toggle small d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" id="audio-track-btn">
-                            <i class="bi bi-volume-up-fill text-info"></i> Audio Track
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow" id="audio-track-menu">
-                            <li><a class="dropdown-item active small" href="javascript:void(0)" onclick="selectAudioTrack(-1)">Default Audio</a></li>
-                        </ul>
-                    </div>
+                <!-- Player area (Left Column on Desktop) -->
+                <div class="player-area-col" id="player-area-col">
+                    <!-- Ambient Video Screen Frame -->
+                    <div class="player-wrapper mb-3">
+                        <div class="ratio ratio-16x9 position-relative">
+                            <div id="player-container" class="w-100 h-100 position-absolute top-0 start-0 bg-black overflow-hidden">
+                                <div id="youtube-player-wrapper" class="w-100 h-100 position-absolute top-0 start-0" style="display: none;"><div id="youtube-player" class="w-100 h-100"></div></div>
+                                <video id="html5-player" controls class="w-100 h-100 position-absolute top-0 start-0" style="display: none;">
+                                    Your browser does not support HTML5 video player playback.
+                                </video>
+                                <iframe id="iframe-player" class="w-100 h-100 position-absolute top-0 start-0 border-0" style="display: none;" allowfullscreen></iframe>
+                            </div>
 
-                    <!-- Subtitle Track Selector -->
-                    <div class="dropdown" id="sub-track-dropdown-container">
-                        <button class="btn btn-dark btn-sm rounded-pill px-2.5 py-1 text-light border border-secondary border-opacity-20 dropdown-toggle small d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" id="sub-track-btn">
-                            <i class="bi bi-cc-square-fill text-warning"></i> Subtitles
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow" id="sub-track-menu">
-                            <li><a class="dropdown-item active small" href="javascript:void(0)" onclick="selectSubtitleTrack(-1)">Off</a></li>
-                        </ul>
-                    </div>
-
-                    <!-- Playback Speed Selector -->
-                    <div class="dropdown">
-                        <button class="btn btn-dark btn-sm rounded-pill px-2.5 py-1 text-light border border-secondary border-opacity-20 dropdown-toggle small d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" id="speed-btn">
-                            <i class="bi bi-speedometer2 text-primary"></i> <span id="speed-label">1.0x</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow">
-                            <li><a class="dropdown-item small" href="javascript:void(0)" onclick="changePlaybackSpeed(0.5)">0.5x</a></li>
-                            <li><a class="dropdown-item small" href="javascript:void(0)" onclick="changePlaybackSpeed(0.75)">0.75x</a></li>
-                            <li><a class="dropdown-item active small" href="javascript:void(0)" onclick="changePlaybackSpeed(1.0)">1.0x (Normal)</a></li>
-                            <li><a class="dropdown-item small" href="javascript:void(0)" onclick="changePlaybackSpeed(1.25)">1.25x</a></li>
-                            <li><a class="dropdown-item small" href="javascript:void(0)" onclick="changePlaybackSpeed(1.5)">1.5x</a></li>
-                            <li><a class="dropdown-item small" href="javascript:void(0)" onclick="changePlaybackSpeed(2.0)">2.0x</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Watch Party Call Control Banner -->
-            <div class="glass-panel p-3 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-3" id="call-status-banner">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="d-flex align-items-center justify-content-center text-white rounded-3 p-2" style="width: 42px; height: 42px; background-color: #073F78;">
-                        <i class="bi bi-camera-video-fill fs-5"></i>
-                    </div>
-                    <div>
-                        <div class="fw-bold text-white d-flex align-items-center gap-2" style="font-size: 0.95rem;">
-                            Live Watch Party Call
-                            <span id="call-active-badge" class="badge bg-secondary rounded-pill px-2 py-1 small fw-normal">0 active</span>
-                        </div>
-                        <div class="small text-light" id="call-members-avatars" style="color: #cbd5e1 !important;">
-                            No active members in call yet. Click Join Video Call!
+                            <!-- Floating Reactions Overlay Canvas/Container -->
+                            <div id="floating-reactions" style="position: absolute; bottom: 60px; right: 30px; pointer-events: none; z-index: 1000; width: 100%; height: 80%;"></div>
                         </div>
                     </div>
-                </div>
-                <div class="d-flex align-items-center gap-2">
-                    <button id="btn-toggle-join-call" onclick="toggleJoinCall()" class="btn btn-primary-gradient btn-sm px-3 py-2 fw-semibold d-flex align-items-center gap-2">
-                        <i class="bi bi-telephone-fill" id="call-join-icon"></i>
-                        <span id="call-join-text">Join Video Call</span>
-                    </button>
-                </div>
-            </div>
 
-            <!-- WebRTC Live Video Calling Section -->
-            <div id="webrtc-calling-section" class="glass-panel p-3 mb-3 d-none">
-                <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-                    <h6 class="fw-bold mb-0 text-white d-flex align-items-center gap-2">
-                        <i class="bi bi-camera-video-fill text-danger"></i> Active Video Call
-                    </h6>
-                    <div class="d-flex gap-2" id="webrtc-controls">
-                        <button id="webrtc-toggle-mic" class="btn btn-outline-success btn-sm rounded-pill px-3 d-flex align-items-center gap-1.5 active">
-                            <i class="bi bi-mic-fill" id="webrtc-mic-icon"></i> <span id="webrtc-mic-text">Mute</span>
-                        </button>
-                        <button id="webrtc-toggle-cam" class="btn btn-outline-success btn-sm rounded-pill px-3 d-flex align-items-center gap-1.5 active">
-                            <i class="bi bi-camera-video-fill" id="webrtc-cam-icon"></i> <span id="webrtc-cam-text">Camera Off</span>
-                        </button>
-                    </div>
-                </div>
-                <div id="webrtc-video-grid" class="webrtc-video-grid">
-                    <!-- Local stream card -->
-                    <div class="webrtc-video-box glass-panel local-video-box" id="local-video-container">
-                        <video id="local-video" autoplay muted playsinline class="webrtc-video-element"></video>
-                        <div class="webrtc-video-label">You</div>
-                        <div class="webrtc-video-avatar" id="local-video-avatar" style="display: none;">U</div>
-                        <div class="webrtc-mic-badge bg-danger text-white rounded-circle p-1 d-none" id="local-mic-badge">
-                            <i class="bi bi-mic-mute-fill"></i>
+                    <!-- Media Streaming & Track Control Bar -->
+                    <div class="glass-panel p-2.5 px-3 mb-3 d-flex flex-wrap align-items-center justify-content-between gap-2 border border-white border-opacity-10 rounded-3">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span id="stream-status-badge" class="status-badge-custom status-ready">
+                                <i class="bi bi-broadcast text-danger animate-pulse"></i> <span id="stream-status-text">Ready to Sync</span>
+                            </span>
+                            <span id="now-playing-badge" class="text-light small fw-medium text-truncate" style="max-width: 280px;" title="Current Title">
+                                <i class="bi bi-film text-warning me-1"></i> <span id="active-video-title">No Video Loaded</span>
+                            </span>
+                        </div>
+                        
+                        <div class="d-flex align-items-center gap-2 flex-wrap ms-auto">
+                            <!-- Audio Track Selector -->
+                            <div class="dropdown" id="audio-track-dropdown-container">
+                                <button class="btn btn-dark btn-sm rounded-pill px-2.5 py-1 text-light border border-secondary border-opacity-20 dropdown-toggle small d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" id="audio-track-btn">
+                                    <i class="bi bi-volume-up-fill text-info"></i> Audio Track
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow" id="audio-track-menu">
+                                    <li><a class="dropdown-item active small" href="javascript:void(0)" onclick="selectAudioTrack(-1)">Default Audio</a></li>
+                                </ul>
+                            </div>
+
+                            <!-- Subtitle Track Selector -->
+                            <div class="dropdown" id="sub-track-dropdown-container">
+                                <button class="btn btn-dark btn-sm rounded-pill px-2.5 py-1 text-light border border-secondary border-opacity-20 dropdown-toggle small d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" id="sub-track-btn">
+                                    <i class="bi bi-cc-square-fill text-warning"></i> Subtitles
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow" id="sub-track-menu">
+                                    <li><a class="dropdown-item active small" href="javascript:void(0)" onclick="selectSubtitleTrack(-1)">Off</a></li>
+                                </ul>
+                            </div>
+
+                            <!-- Playback Speed Selector -->
+                            <div class="dropdown">
+                                <button class="btn btn-dark btn-sm rounded-pill px-2.5 py-1 text-light border border-secondary border-opacity-20 dropdown-toggle small d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" id="speed-btn">
+                                    <i class="bi bi-speedometer2 text-primary"></i> <span id="speed-label">1.0x</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow">
+                                    <li><a class="dropdown-item small" href="javascript:void(0)" onclick="changePlaybackSpeed(0.5)">0.5x</a></li>
+                                    <li><a class="dropdown-item small" href="javascript:void(0)" onclick="changePlaybackSpeed(0.75)">0.75x</a></li>
+                                    <li><a class="dropdown-item active small" href="javascript:void(0)" onclick="changePlaybackSpeed(1.0)">1.0x (Normal)</a></li>
+                                    <li><a class="dropdown-item small" href="javascript:void(0)" onclick="changePlaybackSpeed(1.25)">1.25x</a></li>
+                                    <li><a class="dropdown-item small" href="javascript:void(0)" onclick="changePlaybackSpeed(1.5)">1.5x</a></li>
+                                    <li><a class="dropdown-item small" href="javascript:void(0)" onclick="changePlaybackSpeed(2.0)">2.0x</a></li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
-                    <!-- Remote streams will be dynamically appended here -->
+
+                    <!-- Watch Party Call Control Banner -->
+                    <div class="glass-panel p-3 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-3" id="call-status-banner">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="d-flex align-items-center justify-content-center text-white rounded-3 p-2" style="width: 42px; height: 42px; background-color: #073F78;">
+                                <i class="bi bi-camera-video-fill fs-5"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-white d-flex align-items-center gap-2" style="font-size: 0.95rem;">
+                                    Live Watch Party Call
+                                    <span id="call-active-badge" class="badge bg-secondary rounded-pill px-2 py-1 small fw-normal">0 active</span>
+                                </div>
+                                <div class="small text-light" id="call-members-avatars" style="color: #cbd5e1 !important;">
+                                    No active members in call yet. Click Join Video Call!
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <button id="btn-toggle-join-call" onclick="toggleJoinCall()" class="btn btn-primary-gradient btn-sm px-3 py-2 fw-semibold d-flex align-items-center gap-2">
+                                <i class="bi bi-telephone-fill" id="call-join-icon"></i>
+                                <span id="call-join-text">Join Video Call</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- WebRTC Live Video Calling Section (Right Column on Desktop, Split Top/Bottom on Mobile) -->
+                <div id="webrtc-calling-section" class="webrtc-calling-container d-none">
+                    
+                    <!-- Upper video grid (top-right on desktop, top of player on mobile) -->
+                    <div id="webrtc-video-grid-upper" class="webrtc-video-grid-split">
+                        <!-- Upper/Even feeds distributed dynamically -->
+                    </div>
+
+                    <!-- Compact Unified Call Controls -->
+                    <div id="webrtc-controls-panel" class="glass-panel p-2.5 mb-2 border border-white border-opacity-10 d-flex flex-column gap-2" style="grid-area: controls-panel;">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                            <span class="small fw-bold text-white d-flex align-items-center gap-1.5" style="font-size: 0.85rem;">
+                                <span class="status-dot animate-pulse"></span> Live Call
+                            </span>
+                            <div class="d-flex gap-2">
+                                <button id="webrtc-toggle-mic" class="btn btn-outline-success btn-sm rounded-circle d-flex align-items-center justify-content-center border-opacity-30 active" style="width: 34px; height: 34px;" title="Mute/Unmute Mic">
+                                    <i class="bi bi-mic-fill" id="webrtc-mic-icon"></i>
+                                </button>
+                                <button id="webrtc-toggle-cam" class="btn btn-outline-success btn-sm rounded-circle d-flex align-items-center justify-content-center border-opacity-30 active" style="width: 34px; height: 34px;" title="Camera On/Off">
+                                    <i class="bi bi-camera-video-fill" id="webrtc-cam-icon"></i>
+                                </button>
+                                <button onclick="toggleJoinCall()" class="btn btn-danger btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;" title="Leave Video Call">
+                                    <i class="bi bi-telephone-x-fill"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lower video grid (bottom-right on desktop, bottom of player on mobile) -->
+                    <div id="webrtc-video-grid-lower" class="webrtc-video-grid-split">
+                        <!-- Lower/Odd feeds distributed dynamically -->
+                    </div>
+
+                    <!-- Hidden helper grid to satisfy legacy JS queries -->
+                    <div id="webrtc-video-grid" style="display: none;">
+                        <!-- Local stream card inside helper grid -->
+                        <div class="webrtc-video-box glass-panel local-video-box" id="local-video-container">
+                            <video id="local-video" autoplay muted playsinline class="webrtc-video-element"></video>
+                            <div class="webrtc-video-label">You</div>
+                            <div class="webrtc-video-avatar" id="local-video-avatar" style="display: none;">U</div>
+                            <div class="webrtc-mic-badge bg-danger text-white rounded-circle p-1 d-none" id="local-mic-badge">
+                                <i class="bi bi-mic-mute-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
             <!-- Loader Tabs Panel (Load URL / Search YouTube / Share Screen) -->
@@ -234,6 +259,12 @@
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="screen-share-tab" data-bs-toggle="tab" data-bs-target="#screen-share-loader-pane" type="button" role="tab"><i class="bi bi-display me-1 text-info"></i> Share Screen</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="participants-tab" data-bs-toggle="tab" data-bs-target="#participants-pane" type="button" role="tab"><i class="bi bi-people-fill me-1"></i> Users (<span id="user-count-badge">0</span>)</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history-pane" type="button" role="tab"><i class="bi bi-clock-history me-1"></i> Queue</button>
                     </li>
                 </ul>
 
@@ -294,6 +325,34 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Users (Participants) Tab -->
+                    <div class="tab-pane fade p-3" id="participants-pane" role="tabpanel">
+                        <h6 class="fw-bold mb-3"><i class="bi bi-person-fill text-primary me-1"></i> Active in Room</h6>
+                        <ul id="participants-list-ul" class="participants-list">
+                            <!-- Populated dynamically via JS -->
+                        </ul>
+                    </div>
+
+                    <!-- Queue (History & Favorites) Tab -->
+                    <div class="tab-pane fade p-3" id="history-pane" role="tabpanel">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h6 class="fw-bold mb-0"><i class="bi bi-star-fill text-warning me-1"></i> Favorites</h6>
+                            <button id="favorite-current-btn" class="btn btn-link text-warning text-decoration-none p-0 small">
+                                <i class="bi bi-star-fill me-1"></i> Add Active
+                            </button>
+                        </div>
+                        <div id="favorites-list-container" class="mb-4">
+                            <p class="text-muted small text-center py-2">No favorites yet. Add the active video!</p>
+                        </div>
+
+                        <hr class="border-light border-opacity-10 my-3" />
+
+                        <h6 class="fw-bold mb-3"><i class="bi bi-clock-history text-primary me-1"></i> Watch History</h6>
+                        <div id="history-list-container">
+                            <p class="text-muted small text-center py-2">No videos played recently.</p>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Quick Reactions Toolbar -->
@@ -313,80 +372,39 @@
             </div>
         </div>
 
-        <!-- Sidebar Column (Chat, Participants & History Tabs) -->
-        <div class="sidebar-col">
-            <!-- Sidebar Panel Container -->
-            <div class="glass-panel d-flex flex-column" style="height: 600px;">
-                <ul class="nav nav-tabs nav-tabs-custom p-2 bg-dark bg-opacity-25" id="sidebarTabs" role="tablist">
-                    <li class="nav-item w-33" role="presentation">
-                        <button class="nav-link w-100 active text-center py-2.5" id="chat-tab" data-bs-toggle="tab" data-bs-target="#chat-pane" type="button" role="tab">
-                            <i class="bi bi-chat-text-fill d-block mb-1"></i> Chat
-                        </button>
-                    </li>
-                    <li class="nav-item w-33" role="presentation">
-                        <button class="nav-link w-100 text-center py-2.5" id="participants-tab" data-bs-toggle="tab" data-bs-target="#participants-pane" type="button" role="tab">
-                            <i class="bi bi-people-fill d-block mb-1"></i> Users (<span id="user-count-badge">0</span>)
-                        </button>
-                    </li>
-                    <li class="nav-item w-34" role="presentation">
-                        <button class="nav-link w-100 text-center py-2.5" id="history-tab" data-bs-toggle="tab" data-bs-target="#history-pane" type="button" role="tab">
-                            <i class="bi bi-clock-history d-block mb-1"></i> Queue
-                        </button>
-                    </li>
-                </ul>
+        <!-- Floating Chat FAB Button -->
+        <button id="chat-fab" class="btn btn-primary-gradient rounded-circle shadow-lg d-flex align-items-center justify-content-center" onclick="toggleChatPopup()">
+            <i class="bi bi-chat-dots-fill"></i>
+            <span id="chat-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size: 0.75rem;">0</span>
+        </button>
 
-                <div class="tab-content flex-grow-1 overflow-hidden" id="sidebarTabsContent">
-                    
-                    <!-- 1. Live Chat Pane -->
-                    <div class="tab-pane fade show active h-100" id="chat-pane" role="tabpanel">
-                        <div class="chat-container">
-                            <div class="chat-messages-area" id="chat-messages">
-                                <!-- Empty Chat Illustration -->
-                                <div id="empty-chat-placeholder" class="empty-chat-box">
-                                    <div class="empty-chat-icon">💬</div>
-                                    <h6 class="fw-bold">No messages yet</h6>
-                                    <p class="text-muted small mb-0">Say hello and start the party! 👋</p>
-                                </div>
-                            </div>
-                            <div class="chat-footer">
-                                <div class="input-group">
-                                    <input type="text" id="chat-input" class="form-control form-control-custom" placeholder="Type a message..." />
-                                    <button id="send-btn" class="btn btn-primary-gradient px-3">
-                                        <i class="bi bi-send-fill"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 2. Participants Pane -->
-                    <div class="tab-pane fade h-100 overflow-auto p-3" id="participants-pane" role="tabpanel">
-                        <h6 class="fw-bold mb-3"><i class="bi bi-person-fill text-primary me-1"></i> Active in Room</h6>
-                        <ul id="participants-list-ul" class="participants-list">
-                            <!-- Populated dynamically via JS -->
-                        </ul>
-                    </div>
-
-                    <!-- 3. History & Favorites Pane -->
-                    <div class="tab-pane fade h-100 overflow-auto p-3" id="history-pane" role="tabpanel">
-                        <div class="d-flex align-items-center justify-content-between mb-3">
-                            <h6 class="fw-bold mb-0"><i class="bi bi-star-fill text-warning me-1"></i> Favorites</h6>
-                            <button id="favorite-current-btn" class="btn btn-link text-warning text-decoration-none p-0 small">
-                                <i class="bi bi-star-fill me-1"></i> Add Active
-                            </button>
-                        </div>
-                        <div id="favorites-list-container" class="mb-4">
-                            <p class="text-muted small text-center py-2">No favorites yet. Add the active video!</p>
-                        </div>
-
-                        <hr class="border-light border-opacity-10 my-3" />
-
-                        <h6 class="fw-bold mb-3"><i class="bi bi-clock-history text-primary me-1"></i> Watch History</h6>
-                        <div id="history-list-container">
-                            <p class="text-muted small text-center py-2">No videos played recently.</p>
-                        </div>
-                    </div>
-
+        <!-- Floating Popup Chat Window -->
+        <div id="chat-popup" class="glass-panel position-fixed shadow-lg d-none d-flex flex-column">
+            <div class="chat-popup-header d-flex align-items-center justify-content-between p-3 border-bottom border-light border-opacity-10">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="status-dot bg-success"></span>
+                    <span class="fw-bold text-white small">Room Chat</span>
+                </div>
+                <button onclick="toggleChatPopup()" class="btn btn-link text-white text-decoration-none p-1 line-height-1" title="Close">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            
+            <div class="chat-messages-area flex-grow-1 p-3" id="chat-messages">
+                <!-- Empty Chat Illustration -->
+                <div id="empty-chat-placeholder" class="empty-chat-box">
+                    <div class="empty-chat-icon">💬</div>
+                    <h6 class="fw-bold">No messages yet</h6>
+                    <p class="text-muted small mb-0">Say hello and start the party! 👋</p>
+                </div>
+            </div>
+            
+            <div class="chat-footer p-2.5 border-top border-light border-opacity-10">
+                <div class="input-group">
+                    <input type="text" id="chat-input" class="form-control form-control-custom" placeholder="Type a message..." />
+                    <button id="send-btn" class="btn btn-primary-gradient px-3">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -1173,6 +1191,8 @@ function resetAllPlayers() {
     if (html5Player) {
         try {
             html5Player.pause();
+            html5Player.srcObject = null;
+            html5Player.removeAttribute("src");
         } catch (e) {
             console.warn("HTML5 player reset error:", e);
         }
@@ -1266,6 +1286,48 @@ function updateTrackDropdowns(audioTracks, subtitleTracks) {
 function handleVideoSwitch(url, title, notifyServer = false, startTime = 0) {
     resetAllPlayers();
 
+    const statusBadge = document.getElementById("stream-status-badge");
+    const statusText = document.getElementById("stream-status-text");
+
+    if (url && url.startsWith("screenshare://")) {
+        const sharerConnectionId = url.replace("screenshare://", "");
+        const cleanName = title || "Screen Share";
+        const titleEl = document.getElementById("active-video-title");
+        if (titleEl) titleEl.innerText = cleanName;
+
+        if (statusBadge && statusText) {
+            statusBadge.className = "status-badge-custom status-range";
+            statusText.innerText = "Live Screen Share Active";
+        }
+
+        if (sharerConnectionId === connection.connectionId) {
+            // I am the screensharer
+            html5Player.style.display = "block";
+            if (screenShareStream) {
+                html5Player.srcObject = screenShareStream;
+                html5Player.play().catch(e => console.log("Screenshare local play caught:", e));
+            }
+        } else {
+            // Remote peer is the screensharer
+            html5Player.style.display = "block";
+            const peerObj = peerConnections[sharerConnectionId];
+            if (peerObj && peerObj.screenShareStream) {
+                html5Player.srcObject = peerObj.screenShareStream;
+                html5Player.play().catch(e => console.log("Screenshare remote play caught:", e));
+            } else {
+                html5Player.srcObject = null;
+                const promptOverlay = document.getElementById("local-file-prompt-overlay");
+                const promptText = document.getElementById("local-prompt-text");
+                if (promptText) {
+                    promptText.innerText = `Waiting for ${cleanName}'s screenshare stream to resolve over WebRTC...`;
+                }
+                if (promptOverlay) promptOverlay.classList.remove("d-none");
+            }
+        }
+        toggleLoading(false);
+        return;
+    }
+
     const isLocalProtocol = !url || url.startsWith("local://") || url.startsWith("blob:");
 
     if (isLocalProtocol) {
@@ -1310,7 +1372,7 @@ function handleVideoSwitch(url, title, notifyServer = false, startTime = 0) {
 
     if (ytId) {
         if (statusBadge && statusText) {
-            statusBadge.className = "badge bg-danger bg-opacity-20 text-danger border border-danger border-opacity-30 px-2.5 py-1.5 rounded-pill d-flex align-items-center gap-1.5 small";
+            statusBadge.className = "status-badge-custom status-yt";
             statusText.innerText = "YouTube Stream";
         }
         const wrapper = getYtWrapper();
@@ -1323,7 +1385,7 @@ function handleVideoSwitch(url, title, notifyServer = false, startTime = 0) {
     } else if (url.includes("/hls/") || url.match(/\.m3u8($|\?)/i)) {
         html5Player.style.display = "block";
         if (statusBadge && statusText) {
-            statusBadge.className = "badge bg-success bg-opacity-20 text-success border border-success border-opacity-30 px-2.5 py-1.5 rounded-pill d-flex align-items-center gap-1.5 small";
+            statusBadge.className = "status-badge-custom status-hls";
             statusText.innerText = "HLS Adaptive Stream Active";
         }
 
@@ -1384,7 +1446,7 @@ function handleVideoSwitch(url, title, notifyServer = false, startTime = 0) {
     } else if (url.match(/\.(mp4|mkv|webm|avi|mov|ogg)(\?.*)?$/i) || url.includes('/api/stream/')) {
         html5Player.style.display = "block";
         if (statusBadge && statusText) {
-            statusBadge.className = "badge bg-info bg-opacity-20 text-info border border-info border-opacity-30 px-2.5 py-1.5 rounded-pill d-flex align-items-center gap-1.5 small";
+            statusBadge.className = "status-badge-custom status-range";
             statusText.innerText = "Range Request Media Stream";
         }
         html5Player.src = url;
@@ -1562,10 +1624,47 @@ async function searchYouTubeVideos() {
 }
 
 // Chat & UI helpers
+let isChatOpen = false;
+let unreadMessageCount = 0;
+
+function toggleChatPopup() {
+    const popup = document.getElementById("chat-popup");
+    if (!popup) return;
+    
+    if (popup.classList.contains("d-none")) {
+        popup.classList.remove("d-none");
+        isChatOpen = true;
+        unreadMessageCount = 0;
+        const badge = document.getElementById("chat-badge");
+        if (badge) {
+            badge.classList.add("d-none");
+            badge.innerText = "0";
+        }
+        
+        const area = document.getElementById("chat-messages");
+        if (area) area.scrollTop = area.scrollHeight;
+        
+        const chatInput = document.getElementById("chat-input");
+        if (chatInput) chatInput.focus();
+    } else {
+        popup.classList.add("d-none");
+        isChatOpen = false;
+    }
+}
+
 function appendChatMessage(username, message, timestamp) {
     const area = document.getElementById("chat-messages");
     const placeholder = document.getElementById("empty-chat-placeholder");
     if (placeholder) placeholder.remove();
+
+    if (!isChatOpen) {
+        unreadMessageCount++;
+        const badge = document.getElementById("chat-badge");
+        if (badge) {
+            badge.innerText = unreadMessageCount;
+            badge.classList.remove("d-none");
+        }
+    }
 
     // Check if current user is the author
     let currentUsername = "";
@@ -1678,6 +1777,7 @@ function renderFavorites(favorites) {
 // Screen Sharing Feature
 let isScreenSharing = false;
 let screenShareStream = null;
+const screenShareSenders = {}; // targetConnectionId -> array of RTCRtpSender
 
 async function toggleScreenShare() {
     const btn = document.getElementById("start-screen-share-btn");
@@ -1718,6 +1818,27 @@ async function toggleScreenShare() {
 
             showToast("success", "Screen share started successfully 🖥️");
 
+            // Attach screenshare tracks to all existing peer connections
+            Object.keys(peerConnections).forEach(id => {
+                const pc = peerConnections[id].pc;
+                const senders = [];
+                screenShareStream.getTracks().forEach(track => {
+                    try {
+                        const sender = pc.addTrack(track, screenShareStream);
+                        senders.push(sender);
+                    } catch (e) {
+                        console.warn("[WebRTC Track] Error adding screen track to pc:", e);
+                    }
+                });
+                screenShareSenders[id] = senders;
+            });
+
+            // Signal the video change to screenshare
+            const username = document.getElementById("username-input")?.value || "Someone";
+            if (currentRoom) {
+                await connection.invoke("ChangeVideo", currentRoom, "screenshare://" + connection.connectionId, `Screen Share - ${username}`, 0.0);
+            }
+
             screenShareStream.getVideoTracks()[0].onended = () => {
                 stopScreenShare();
             };
@@ -1743,6 +1864,21 @@ function stopScreenShare() {
         screenShareStream = null;
     }
 
+    // Remove screenshare tracks from all active peer connections
+    Object.keys(peerConnections).forEach(id => {
+        const pc = peerConnections[id].pc;
+        if (screenShareSenders[id]) {
+            screenShareSenders[id].forEach(sender => {
+                try {
+                    pc.removeTrack(sender);
+                } catch (e) {
+                    console.warn("[WebRTC Track] Error removing screen track from pc:", e);
+                }
+            });
+            delete screenShareSenders[id];
+        }
+    });
+
     if (html5Player) {
         html5Player.srcObject = null;
     }
@@ -1759,6 +1895,29 @@ function stopScreenShare() {
     if (titleEl) titleEl.innerText = "No Stream Active";
     if (statusTextEl) statusTextEl.innerText = "Idle";
     showToast("info", "Screen share stopped.");
+
+    // Signal the video change to idle/empty
+    if (currentRoom) {
+        connection.invoke("ChangeVideo", currentRoom, "", "No Stream Active", 0.0).catch(e => console.log(e));
+    }
+}
+
+function displayRemoteScreenShare(stream) {
+    if (html5Player) {
+        html5Player.srcObject = stream;
+        html5Player.style.display = "block";
+        html5Player.play().catch(e => console.log("Remote screenshare play error:", e));
+
+        // Hide overlay if shown
+        const promptOverlay = document.getElementById("local-file-prompt-overlay");
+        if (promptOverlay) promptOverlay.classList.add("d-none");
+
+        // Hide YouTube/Iframe
+        const youtubeWrapper = document.getElementById("youtube-player-wrapper");
+        const iframePlayer = document.getElementById("iframe-player");
+        if (youtubeWrapper) youtubeWrapper.style.display = "none";
+        if (iframePlayer) iframePlayer.style.display = "none";
+    }
 }
 
 // Floating Reactions Animation
@@ -1782,15 +1941,53 @@ function triggerFloatingReaction(emoji) {
     setTimeout(() => el.remove(), 2500);
 }
 
-// WebRTC Watch Party Audio/Video Integration & Serverless P2P
+// WebRTC Watch Party Audio/Video Integration & Production P2P / TURN Engine
 let isInCall = false;
 let lastParticipantsList = [];
+let localStream = null;
+const peerConnections = {}; // targetConnectionId -> { pc, pendingCandidates, iceRestartTimer, targetUsername }
+const earlyCandidatesQueue = {}; // senderConnectionId -> [ candidatePayloads ]
 
+// Comprehensive ICE Server configuration including public STUNs and TURN relays (UDP, TCP, TLS/443)
 const rtcConfig = {
     iceServers: [
-        { urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302", "stun:stun2.l.google.com:19302", "stun:stun3.l.google.com:19302"] }
-    ]
+        // Primary STUN Servers
+        { urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302", "stun:stun2.l.google.com:19302", "stun:stun3.l.google.com:19302", "stun:stun4.l.google.com:19302"] },
+        { urls: ["stun:stun.cloudflare.com:3478", "stun:stun.services.mozilla.com:3478"] },
+
+        // Production TURN Relays for NAT Traversal (Full Cone, Restricted, Symmetric NAT, CGNAT, Firewalls)
+        {
+            urls: [
+                "turn:openrelay.metered.ca:80",
+                "turn:openrelay.metered.ca:443",
+                "turn:openrelay.metered.ca:443?transport=tcp"
+            ],
+            username: "openrelayproject",
+            credential: "openrelayproject"
+        },
+        {
+            urls: [
+                "turns:openrelay.metered.ca:443?transport=tcp"
+            ],
+            username: "openrelayproject",
+            credential: "openrelayproject"
+        },
+        {
+            urls: [
+                "turn:global.turn.twilio.com:3478?transport=udp",
+                "turn:global.turn.twilio.com:3478?transport=tcp"
+            ]
+        }
+    ],
+    iceCandidatePoolSize: 10,
+    iceTransportPolicy: "all",
+    bundlePolicy: "max-bundle",
+    rtcpMuxPolicy: "require"
 };
+
+connection.on("WebRtcSignalFailed", (targetId, signalType, errorMsg) => {
+    console.warn(`[WebRTC Signal Error] Failed to route ${signalType} to ${targetId}:`, errorMsg);
+});
 
 async function toggleJoinCall() {
     const section = document.getElementById("webrtc-calling-section");
@@ -1810,6 +2007,7 @@ async function toggleJoinCall() {
             connection.invoke("UpdateCallStatus", currentRoom, true, isMicMuted, isCameraOff).catch(e => console.log(e));
         }
         syncWebRtcPeers(lastParticipantsList);
+        rebalanceVideoGrids();
         showToast("success", "Joined watch party video call 📹");
     } else {
         isInCall = false;
@@ -1850,7 +2048,7 @@ function createSyntheticFallbackStream() {
 
         return new MediaStream([videoTrack, audioTrack]);
     } catch (e) {
-        console.warn("Could not create synthetic stream fallback:", e);
+        console.warn("[WebRTC Media] Could not create synthetic stream fallback:", e);
         return null;
     }
 }
@@ -1860,15 +2058,17 @@ async function startLocalStream() {
         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         const localVideoEl = document.getElementById("local-video");
         if (localVideoEl) localVideoEl.srcObject = localStream;
+        console.log("[WebRTC Media] Local camera & mic stream acquired.");
     } catch (err) {
-        console.warn("WebRTC camera/mic access declined or unavailable:", err);
+        console.warn("[WebRTC Media] Camera/mic access declined or unavailable:", err);
         try {
             localStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
             isCameraOff = true;
             document.getElementById("local-video").style.display = "none";
             document.getElementById("local-video-avatar").style.display = "flex";
+            console.log("[WebRTC Media] Local audio-only stream acquired.");
         } catch (e) {
-            console.warn("Using synthetic canvas fallback stream for WebRTC call connection");
+            console.warn("[WebRTC Media] Using synthetic canvas fallback stream for WebRTC call connection");
             localStream = createSyntheticFallbackStream();
             isCameraOff = true;
             document.getElementById("local-video").style.display = "none";
@@ -1877,38 +2077,154 @@ async function startLocalStream() {
     }
 }
 
+function classifyCandidateType(candidateStr) {
+    if (!candidateStr) return "UNKNOWN";
+    if (candidateStr.includes("typ host")) return "HOST (LAN)";
+    if (candidateStr.includes("typ srflx")) return "STUN (Public)";
+    if (candidateStr.includes("typ relay")) return "TURN (Relay)";
+    return "PEER";
+}
+
 function getOrCreatePeerConnection(targetConnectionId, targetUsername) {
     if (peerConnections[targetConnectionId]) {
         return peerConnections[targetConnectionId].pc;
     }
 
+    console.log(`[WebRTC Init] Creating RTCPeerConnection for target: ${targetConnectionId} (${targetUsername})`);
     const pc = new RTCPeerConnection(rtcConfig);
-    const peerObj = { pc: pc, pendingCandidates: [] };
+    const peerObj = {
+        pc: pc,
+        pendingCandidates: [],
+        targetUsername: targetUsername || "Participant",
+        iceRestartTimer: null,
+        isMakingOffer: false,
+        webcamStream: null,
+        screenShareStream: null
+    };
     peerConnections[targetConnectionId] = peerObj;
 
+    // Attach local stream tracks (webcam & mic)
     if (localStream) {
         localStream.getTracks().forEach(track => {
-            try { pc.addTrack(track, localStream); } catch (e) {}
+            try { pc.addTrack(track, localStream); } catch (e) {
+                console.warn("[WebRTC Track] Error adding track:", e);
+            }
         });
     }
 
+    // Attach screenshare stream tracks if screensharing is active
+    if (isScreenSharing && screenShareStream) {
+        const senders = [];
+        screenShareStream.getTracks().forEach(track => {
+            try {
+                const sender = pc.addTrack(track, screenShareStream);
+                senders.push(sender);
+            } catch (e) {
+                console.warn("[WebRTC Track] Error adding screen track to new peer:", e);
+            }
+        });
+        screenShareSenders[targetConnectionId] = senders;
+    }
+
+    // 0. Negotiation Needed (Renegotiate tracks on screen share start/stop)
+    pc.onnegotiationneeded = async () => {
+        try {
+            console.log(`[WebRTC Negotiation Needed] for target ${targetConnectionId} (state: ${pc.signalingState})`);
+            await initiateCallWithPeer(targetConnectionId, targetUsername);
+        } catch (err) {
+            console.error("[WebRTC Negotiation Error]:", err);
+        }
+    };
+
+    // 1. ICE Candidate Generation
     pc.onicecandidate = (event) => {
-        if (event.candidate && currentRoom) {
-            connection.invoke("SendWebRtcSignal", currentRoom, targetConnectionId, "ice-candidate", JSON.stringify(event.candidate))
-                .catch(err => console.log("Send ICE error:", err));
+        if (event.candidate) {
+            const candType = classifyCandidateType(event.candidate.candidate);
+            console.log(`[WebRTC Candidate Generated] To ${targetConnectionId}: Type=${candType}, Proto=${event.candidate.protocol || 'udp'}, Addr=${event.candidate.address || 'hidden'}`);
+            if (currentRoom) {
+                connection.invoke("SendWebRtcSignal", currentRoom, targetConnectionId, "ice-candidate", JSON.stringify(event.candidate))
+                    .catch(err => console.error("[WebRTC Signal Error] Send Candidate failed:", err));
+            }
+        } else {
+            console.log(`[WebRTC Candidate] ICE candidate gathering complete for target ${targetConnectionId}`);
         }
     };
 
+    pc.onicecandidateerror = (event) => {
+        console.warn(`[WebRTC ICE Candidate Error] Code ${event.errorCode}: ${event.errorText} (${event.url})`);
+    };
+
+    // 2. Track Received
     pc.ontrack = (event) => {
+        console.log(`[WebRTC Track Received] Kind=${event.track.kind} from ${targetConnectionId} (${targetUsername})`);
         if (event.streams && event.streams[0]) {
-            addOrUpdateRemoteVideo(targetConnectionId, targetUsername, event.streams[0]);
+            const incomingStream = event.streams[0];
+            const peerObj = peerConnections[targetConnectionId];
+            if (peerObj) {
+                if (!peerObj.webcamStream) {
+                    peerObj.webcamStream = incomingStream;
+                    console.log(`[WebRTC Stream] Registered webcam stream for ${targetConnectionId}`);
+                    addOrUpdateRemoteVideo(targetConnectionId, targetUsername, incomingStream);
+                } else if (peerObj.webcamStream.id !== incomingStream.id) {
+                    peerObj.screenShareStream = incomingStream;
+                    console.log(`[WebRTC Stream] Registered screenshare stream for ${targetConnectionId}`);
+                    if (activeVideoUrl === "screenshare://" + targetConnectionId) {
+                        displayRemoteScreenShare(incomingStream);
+                    }
+                } else {
+                    addOrUpdateRemoteVideo(targetConnectionId, targetUsername, incomingStream);
+                }
+            } else {
+                addOrUpdateRemoteVideo(targetConnectionId, targetUsername, incomingStream);
+            }
         }
     };
 
+    // 3. ICE Gathering State Logging
+    pc.onicegatheringstatechange = () => {
+        console.log(`[WebRTC ICE Gathering State] ${targetConnectionId}: ${pc.iceGatheringState}`);
+    };
+
+    // 4. ICE Connection State Handling & Auto ICE Restart
     pc.oniceconnectionstatechange = () => {
-        if (pc.iceConnectionState === "disconnected" || pc.iceConnectionState === "failed" || pc.iceConnectionState === "closed") {
+        const state = pc.iceConnectionState;
+        console.log(`[WebRTC ICE Connection State] ${targetConnectionId}: ${state}`);
+
+        if (state === "connected" || state === "completed") {
+            console.log(`[WebRTC ICE] Successfully connected P2P/TURN session with ${targetConnectionId}`);
+            if (peerObj.iceRestartTimer) {
+                clearTimeout(peerObj.iceRestartTimer);
+                peerObj.iceRestartTimer = null;
+            }
+        } else if (state === "disconnected" || state === "failed") {
+            console.warn(`[WebRTC ICE Warning] Connection state is '${state}' with ${targetConnectionId}. Scheduling recovery...`);
+            if (!peerObj.iceRestartTimer) {
+                peerObj.iceRestartTimer = setTimeout(() => {
+                    if (pc.iceConnectionState === "failed" || pc.iceConnectionState === "disconnected") {
+                        console.log(`[WebRTC ICE Restart] Attempting automatic ICE restart with ${targetConnectionId}...`);
+                        triggerIceRestart(targetConnectionId);
+                    }
+                }, 3000);
+            }
+        } else if (state === "closed") {
             removeRemoteVideo(targetConnectionId);
         }
+    };
+
+    // 5. Peer Connection State Logging
+    pc.onconnectionstatechange = () => {
+        const state = pc.connectionState;
+        console.log(`[WebRTC Connection State] ${targetConnectionId}: ${state}`);
+        if (state === "connected") {
+            showToast("success", `Connected video call with ${targetUsername} 🟢`);
+        } else if (state === "failed") {
+            showToast("error", `WebRTC connection failed with ${targetUsername}. Attempting TURN relay restart...`);
+        }
+    };
+
+    // 6. Signaling State Logging
+    pc.onsignalingstatechange = () => {
+        console.log(`[WebRTC Signaling State] ${targetConnectionId}: ${pc.signalingState}`);
     };
 
     return pc;
@@ -1916,78 +2232,144 @@ function getOrCreatePeerConnection(targetConnectionId, targetUsername) {
 
 async function processPendingIceCandidates(targetConnectionId) {
     const peerObj = peerConnections[targetConnectionId];
-    if (peerObj && peerObj.pendingCandidates && peerObj.pendingCandidates.length > 0) {
+    if (!peerObj || !peerObj.pc) return;
+
+    // First process early candidates buffer if any
+    if (earlyCandidatesQueue[targetConnectionId] && earlyCandidatesQueue[targetConnectionId].length > 0) {
+        console.log(`[WebRTC Candidates] Flushing ${earlyCandidatesQueue[targetConnectionId].length} early candidates for ${targetConnectionId}`);
+        const early = [...earlyCandidatesQueue[targetConnectionId]];
+        earlyCandidatesQueue[targetConnectionId] = [];
+        for (const candPayload of early) {
+            await addIceCandidateSafe(peerObj.pc, candPayload);
+        }
+    }
+
+    // Process pending candidates on the peer object
+    if (peerObj.pendingCandidates && peerObj.pendingCandidates.length > 0) {
+        console.log(`[WebRTC Candidates] Flushing ${peerObj.pendingCandidates.length} queued candidates for ${targetConnectionId}`);
         const candidates = [...peerObj.pendingCandidates];
         peerObj.pendingCandidates = [];
-        for (const cand of candidates) {
-            try {
-                await peerObj.pc.addIceCandidate(new RTCIceCandidate(cand));
-            } catch (err) {
-                console.warn("Error adding queued ICE candidate:", err);
-            }
+        for (const candPayload of candidates) {
+            await addIceCandidateSafe(peerObj.pc, candPayload);
         }
+    }
+}
+
+async function addIceCandidateSafe(pc, candidateData) {
+    if (!candidateData) return;
+    try {
+        if (!candidateData.candidate && candidateData.candidate !== "") {
+            return;
+        }
+        const candType = classifyCandidateType(candidateData.candidate);
+        console.log(`[WebRTC Add Candidate] Adding candidate type=${candType}`);
+        await pc.addIceCandidate(new RTCIceCandidate(candidateData));
+    } catch (err) {
+        console.warn("[WebRTC Candidate Add Warning]:", err.message);
     }
 }
 
 async function initiateCallWithPeer(targetConnectionId, targetUsername) {
     try {
+        console.log(`[WebRTC Offer] Initiating offer to peer: ${targetConnectionId}`);
         const pc = getOrCreatePeerConnection(targetConnectionId, targetUsername);
-        if (pc.signalingState !== "stable") return;
+        const peerObj = peerConnections[targetConnectionId];
+        if (peerObj) peerObj.isMakingOffer = true;
 
-        const offer = await pc.createOffer();
+        const offerOptions = { offerToReceiveAudio: true, offerToReceiveVideo: true };
+        const offer = await pc.createOffer(offerOptions);
+        
+        if (pc.signalingState !== "stable" && pc.signalingState !== "have-local-offer") {
+            console.warn(`[WebRTC Offer Warning] Skipping offer set in state: ${pc.signalingState}`);
+            return;
+        }
+
         await pc.setLocalDescription(offer);
+        if (peerObj) peerObj.isMakingOffer = false;
+
+        if (currentRoom) {
+            await connection.invoke("SendWebRtcSignal", currentRoom, targetConnectionId, "offer", JSON.stringify(offer));
+            console.log(`[WebRTC Offer Sent] Successfully sent SDP offer to ${targetConnectionId}`);
+        }
+    } catch (err) {
+        console.error("[WebRTC Offer Error] Error initiating call with peer:", err);
+        if (peerConnections[targetConnectionId]) peerConnections[targetConnectionId].isMakingOffer = false;
+    }
+}
+
+async function triggerIceRestart(targetConnectionId) {
+    const peerObj = peerConnections[targetConnectionId];
+    if (!peerObj || !peerObj.pc) return;
+    const pc = peerObj.pc;
+    console.log(`[WebRTC ICE Restart] Re-negotiating ICE with ${targetConnectionId}`);
+    try {
+        peerObj.isMakingOffer = true;
+        const offer = await pc.createOffer({ iceRestart: true, offerToReceiveAudio: true, offerToReceiveVideo: true });
+        await pc.setLocalDescription(offer);
+        peerObj.isMakingOffer = false;
+
         if (currentRoom) {
             await connection.invoke("SendWebRtcSignal", currentRoom, targetConnectionId, "offer", JSON.stringify(offer));
         }
     } catch (err) {
-        console.error("Error initiating call with peer:", err);
+        console.error("[WebRTC ICE Restart Error]:", err);
+        if (peerObj) peerObj.isMakingOffer = false;
     }
 }
 
 async function handleWebRtcOffer(senderConnectionId, offerData) {
     try {
-        const pc = getOrCreatePeerConnection(senderConnectionId, "Peer");
+        console.log(`[WebRTC Offer Received] From ${senderConnectionId}`);
+        const isPolite = connection.connectionId > senderConnectionId;
+        let pc = getOrCreatePeerConnection(senderConnectionId, "Participant");
+        const peerObj = peerConnections[senderConnectionId];
 
-        if (pc.signalingState !== "stable") {
-            console.warn("Resetting colliding peer connection during offer handling");
-            try { pc.close(); } catch (e) {}
-            delete peerConnections[senderConnectionId];
-            const newPc = getOrCreatePeerConnection(senderConnectionId, "Peer");
-            await newPc.setRemoteDescription(new RTCSessionDescription(offerData));
-            const answer = await newPc.createAnswer();
-            await newPc.setLocalDescription(answer);
-            if (currentRoom) {
-                await connection.invoke("SendWebRtcSignal", currentRoom, senderConnectionId, "answer", JSON.stringify(answer));
+        const offerCollision = (pc.signalingState !== "stable" || peerObj.isMakingOffer);
+
+        if (offerCollision) {
+            console.warn(`[WebRTC Collision] Collision detected with ${senderConnectionId}. Polite=${isPolite}, State=${pc.signalingState}`);
+            if (!isPolite) {
+                console.log(`[WebRTC Collision] Impolite peer ignoring offer from ${senderConnectionId}`);
+                return;
             }
-            await processPendingIceCandidates(senderConnectionId);
-            return;
+            try {
+                await pc.setLocalDescription({ type: "rollback" });
+            } catch (rollbackErr) {
+                console.warn("[WebRTC Rollback Warning]:", rollbackErr);
+            }
         }
 
         await pc.setRemoteDescription(new RTCSessionDescription(offerData));
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
+
         if (currentRoom) {
             await connection.invoke("SendWebRtcSignal", currentRoom, senderConnectionId, "answer", JSON.stringify(answer));
+            console.log(`[WebRTC Answer Sent] Successfully sent SDP answer to ${senderConnectionId}`);
         }
+
         await processPendingIceCandidates(senderConnectionId);
     } catch (err) {
-        console.error("Error handling WebRTC offer:", err);
+        console.error("[WebRTC Offer Error] Failed to handle offer:", err);
     }
 }
 
 async function handleWebRtcAnswer(senderConnectionId, answerData) {
     try {
+        console.log(`[WebRTC Answer Received] From ${senderConnectionId}`);
         const peerObj = peerConnections[senderConnectionId];
         if (peerObj && peerObj.pc) {
-            if (peerObj.pc.signalingState === "have-local-offer") {
-                await peerObj.pc.setRemoteDescription(new RTCSessionDescription(answerData));
+            const pc = peerObj.pc;
+            if (pc.signalingState === "have-local-offer") {
+                await pc.setRemoteDescription(new RTCSessionDescription(answerData));
+                console.log(`[WebRTC Answer Set] Remote description set for ${senderConnectionId}`);
                 await processPendingIceCandidates(senderConnectionId);
             } else {
-                console.warn(`Ignoring answer received in state: ${peerObj.pc.signalingState}`);
+                console.warn(`[WebRTC Answer Ignored] Received answer in state '${pc.signalingState}' from ${senderConnectionId}`);
             }
         }
     } catch (err) {
-        console.error("Error handling WebRTC answer:", err);
+        console.error("[WebRTC Answer Error] Failed to handle answer:", err);
     }
 }
 
@@ -1995,14 +2377,22 @@ async function handleWebRtcCandidate(senderConnectionId, candidateData) {
     try {
         const peerObj = peerConnections[senderConnectionId];
         if (peerObj && peerObj.pc) {
-            if (peerObj.pc.remoteDescription && peerObj.pc.remoteDescription.type) {
-                await peerObj.pc.addIceCandidate(new RTCIceCandidate(candidateData));
+            const pc = peerObj.pc;
+            if (pc.remoteDescription && pc.remoteDescription.type) {
+                await addIceCandidateSafe(pc, candidateData);
             } else {
+                console.log(`[WebRTC Candidate Queued] Remote description not set yet for ${senderConnectionId}. Queueing...`);
                 peerObj.pendingCandidates.push(candidateData);
             }
+        } else {
+            console.log(`[WebRTC Early Candidate Queued] Peer connection not initialized yet for ${senderConnectionId}. Buffering...`);
+            if (!earlyCandidatesQueue[senderConnectionId]) {
+                earlyCandidatesQueue[senderConnectionId] = [];
+            }
+            earlyCandidatesQueue[senderConnectionId].push(candidateData);
         }
     } catch (err) {
-        console.error("Error adding ICE candidate:", err);
+        console.error("[WebRTC Candidate Error]:", err);
     }
 }
 
@@ -2049,6 +2439,41 @@ function syncWebRtcPeers(participants) {
     });
 }
 
+function rebalanceVideoGrids() {
+    const localBox = document.getElementById("local-video-container");
+    const remoteBoxes = Array.from(document.querySelectorAll(".remote-video-box"));
+    
+    const allBoxes = [];
+    if (localBox && isInCall) allBoxes.push(localBox);
+    allBoxes.push(...remoteBoxes);
+    
+    const upperGrid = document.getElementById("webrtc-video-grid-upper");
+    const lowerGrid = document.getElementById("webrtc-video-grid-lower");
+    const mainView = document.querySelector(".theater-main-view");
+    
+    if (!upperGrid || !lowerGrid) return;
+    
+    const activeLabel = document.getElementById("webrtc-call-count-label");
+    if (activeLabel) {
+        activeLabel.innerText = `${allBoxes.length} participant${allBoxes.length === 1 ? '' : 's'}`;
+    }
+    
+    if (allBoxes.length === 0) {
+        if (mainView) mainView.classList.remove("in-call");
+        return;
+    }
+    
+    if (mainView) mainView.classList.add("in-call");
+    
+    allBoxes.forEach((box, index) => {
+        if (index % 2 === 0) {
+            upperGrid.appendChild(box);
+        } else {
+            lowerGrid.appendChild(box);
+        }
+    });
+}
+
 function addOrUpdateRemoteVideo(peerId, username, stream) {
     let box = document.getElementById(`peer-box-${peerId}`);
     if (!box) {
@@ -2075,15 +2500,21 @@ function addOrUpdateRemoteVideo(peerId, username, stream) {
         videoEl.srcObject = stream;
         videoEl.play().catch(e => console.log("Remote video play caught:", e));
     }
+    rebalanceVideoGrids();
 }
 
 function removeRemoteVideo(peerId) {
     const box = document.getElementById(`peer-box-${peerId}`);
     if (box) box.remove();
     if (peerConnections[peerId]) {
+        if (peerConnections[peerId].iceRestartTimer) {
+            clearTimeout(peerConnections[peerId].iceRestartTimer);
+        }
         try { peerConnections[peerId].pc.close(); } catch (e) {}
         delete peerConnections[peerId];
     }
+    delete earlyCandidatesQueue[peerId];
+    rebalanceVideoGrids();
 }
 
 document.getElementById("webrtc-toggle-mic").addEventListener("click", () => {
@@ -2149,10 +2580,15 @@ function cleanupWebRtc() {
         localStream = null;
     }
     Object.keys(peerConnections).forEach(id => {
+        if (peerConnections[id].iceRestartTimer) {
+            clearTimeout(peerConnections[id].iceRestartTimer);
+        }
         try { peerConnections[id].pc.close(); } catch (e) {}
         delete peerConnections[id];
     });
+    Object.keys(earlyCandidatesQueue).forEach(id => delete earlyCandidatesQueue[id]);
     document.querySelectorAll(".remote-video-box").forEach(el => el.remove());
+    rebalanceVideoGrids();
 }
     </script>
     <style>

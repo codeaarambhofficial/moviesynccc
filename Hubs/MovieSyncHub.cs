@@ -234,7 +234,17 @@ namespace MovieSync.Web.Hubs
 
         public async Task SendWebRtcSignal(string roomId, string targetConnectionId, string signalType, string signalData)
         {
-            await Clients.Client(targetConnectionId).SendAsync("ReceiveWebRtcSignal", Context.ConnectionId, signalType, signalData);
+            try
+            {
+                if (!string.IsNullOrEmpty(targetConnectionId))
+                {
+                    await Clients.Client(targetConnectionId).SendAsync("ReceiveWebRtcSignal", Context.ConnectionId, signalType, signalData);
+                }
+            }
+            catch (Exception ex)
+            {
+                await Clients.Caller.SendAsync("WebRtcSignalFailed", targetConnectionId, signalType, ex.Message);
+            }
         }
 
         public async Task UpdateCallStatus(string roomId, bool isInCall, bool isMuted, bool isCameraOff)
