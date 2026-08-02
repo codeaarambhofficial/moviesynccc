@@ -133,6 +133,44 @@ namespace MovieSync.Web.Hubs
             }
         }
 
+        public async Task SyncPosition(string roomId, double time, double playbackRate)
+        {
+            var room = _roomStateManager.GetRoom(roomId);
+            if (room != null)
+            {
+                // Host broadcasts position for drift correction
+                if (room.HostConnectionId == Context.ConnectionId)
+                {
+                    _roomStateManager.UpdateVideoState(roomId, room.CurrentVideoUrl, room.CurrentVideoTitle, room.IsPlaying, time);
+                    await Clients.OthersInGroup(roomId).SendAsync("PositionSynced", time, playbackRate);
+                }
+            }
+        }
+
+        public async Task SelectLocalMedia(string roomId, string fileName, long fileSize)
+        {
+            var room = _roomStateManager.GetRoom(roomId);
+            if (room != null)
+            {
+                string username = Context.User?.Identity?.Name ?? "Guest";
+                if (username.Contains("@")) username = username.Split('@')[0];
+
+                string mediaTitle = !string.IsNullOrEmpty(fileName) ? fileName : "Local Movie";
+
+                if (room.HostConnectionId == Context.ConnectionId)
+                {
+                    _roomStateManager.UpdateVideoState(roomId, "local://" + fileName, mediaTitle, room.IsPlaying, 0.0);
+                    _roomStateManager.AddToHistory(roomId, "local://" + fileName, mediaTitle);
+                    await Clients.Group(roomId).SendAsync("MediaMetadataChanged", mediaTitle, fileSize);
+                    await Clients.Group(roomId).SendAsync("ReceiveRoomState", room);
+                }
+                else
+                {
+                    await Clients.OthersInGroup(roomId).SendAsync("UserLoadedMedia", username, mediaTitle);
+                }
+            }
+        }
+
         public async Task ChangeVideo(string roomId, string url, string title, double time)
         {
             var room = _roomStateManager.GetRoom(roomId);
@@ -145,7 +183,10 @@ namespace MovieSync.Web.Hubs
             {
                 // Ingest and rewrite third-party stream URLs to go through our backend proxy
                 string resolvedUrl = url;
-                if (!IsYouTubeUrl(url) && (url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || url.StartsWith("https://", StringComparison.OrdinalIgnoreCase)))
+                if (!url.StartsWith("blob:", StringComparison.OrdinalIgnoreCase) && 
+                    !url.StartsWith("local://", StringComparison.OrdinalIgnoreCase) && 
+                    !IsYouTubeUrl(url) && 
+                    (url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || url.StartsWith("https://", StringComparison.OrdinalIgnoreCase)))
                 {
                     resolvedUrl = $"/api/proxy?url={Uri.EscapeDataString(url)}";
                 }
