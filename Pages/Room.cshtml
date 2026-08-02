@@ -779,23 +779,17 @@ if (localFileInput) {
             badge.classList.remove("d-none");
         }
 
-        handleLocalFileStream(objectUrl, fileName, file.size);
+        if (typeof handleLocalFileStream === "function") {
+            handleLocalFileStream(objectUrl, fileName, file.size);
+        } else if (typeof loadLocalFileStream === "function") {
+            loadLocalFileStream(objectUrl, fileName, file.size);
+        }
+
+        if (isHost && currentRoom && typeof uploadAndStreamFile === "function") {
+            uploadAndStreamFile(file);
+        }
     });
 }
-    const nameEl = document.getElementById("selected-file-name");
-    if (badge && nameEl) {
-        nameEl.innerText = fileName;
-        badge.classList.remove("d-none");
-    }
-
-    // Play locally for host immediately (zero latency)
-    loadLocalFileStream(objectUrl, fileName, file.size);
-
-    // Stream to participants via backend pipeline if host
-    if (isHost && currentRoom) {
-        uploadAndStreamFile(file);
-    }
-});
 
 async function uploadAndStreamFile(file) {
     try {
