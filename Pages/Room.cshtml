@@ -1367,8 +1367,6 @@ function handleVideoSwitch(url, title, notifyServer = false, startTime = 0) {
 
     // External streams or internal HLS / Range streams
     const ytId = extractYtId(url);
-    const statusBadge = document.getElementById("stream-status-badge");
-    const statusText = document.getElementById("stream-status-text");
 
     if (ytId) {
         if (statusBadge && statusText) {
