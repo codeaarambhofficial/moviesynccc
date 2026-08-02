@@ -105,7 +105,7 @@
             <div class="player-wrapper mb-3">
                 <div class="ratio ratio-16x9 position-relative">
                     <div id="player-container" class="w-100 h-100 d-flex align-items-center justify-content-center position-relative">
-                        <div id="youtube-player" class="w-100 h-100" style="display: none;"></div>
+                        <div id="youtube-player-wrapper" class="w-100 h-100" style="display: none;"><div id="youtube-player" class="w-100 h-100"></div></div>
                         <video id="html5-player" controls class="w-100 h-100" style="display: none;">
                             Your browser does not support HTML5 video player playback.
                         </video>
@@ -116,13 +116,20 @@
                             <div class="bg-primary bg-opacity-20 p-3 rounded-circle mb-3 text-primary fs-1">
                                 <i class="bi bi-film"></i>
                             </div>
-                            <h4 class="fw-bold text-light mb-2">Local Movie Sync</h4>
-                            <p class="text-muted mb-4 fs-6" id="local-prompt-text" style="max-width: 480px;">Select your local video file to synchronize playback with the room.</p>
-                            <button class="btn btn-primary-gradient px-4 py-2.5 rounded-pill shadow fs-6 fw-semibold" onclick="document.getElementById('local-file-input').click()">
-                                <i class="bi bi-folder2-open me-2 text-warning"></i> Select Local Video File
-                            </button>
+                            <h4 class="fw-bold text-light mb-2">Media Stream Sync</h4>
+                            <p class="text-muted mb-4 fs-6" id="local-prompt-text" style="max-width: 480px;">Select a local video file (for yourself only) OR stream a file from this server to all participants.</p>
+                            <div class="d-flex flex-column gap-3 align-items-center w-100" style="max-width: 400px;">
+                                <button class="btn btn-primary-gradient px-4 py-2.5 rounded-pill shadow fs-6 fw-semibold w-100" onclick="document.getElementById('local-file-input').click()">
+                                    <i class="bi bi-folder2-open me-2 text-warning"></i> 1. Select Local Video File (Host Only)
+                                </button>
+                                <div class="text-muted small w-100 text-center text-uppercase fw-bold">OR STREAM TO ALL (LOCAL RUN)</div>
+                                <div class="input-group w-100">
+                                    <input type="text" id="host-stream-path" class="form-control" placeholder="C:\Movies\movie.mp4 or /home/movie.mkv" />
+                                    <button class="btn btn-success" id="host-stream-btn"><i class="bi bi-broadcast"></i> Stream to Room</button>
+                                </div>
+                            </div>
                             <div class="mt-3 text-muted small">
-                                <i class="bi bi-shield-check me-1 text-success"></i> Your media file is played locally and never uploaded anywhere.
+                                <i class="bi bi-info-circle me-1 text-info"></i> Streaming requires the server to be running on the host machine.
                             </div>
                         </div>
                     </div>
@@ -345,7 +352,8 @@ const peerConnections = {}; // peerConnectionId -> RTCPeerConnection
 let hlsInstance = null;
 let driftSyncInterval = null;
 
-const ytContainer = document.getElementById("youtube-player");
+const getYtWrapper = () => document.getElementById("youtube-player-wrapper");
+const isYtActive = () => { const w = getYtWrapper(); return w && w.style.display !== "none"; };
 const html5Player = document.getElementById("html5-player");
 const iframePlayer = document.getElementById("iframe-player");
 
@@ -421,11 +429,12 @@ function onPlayerReady(event) {
     
     // Hide youtube container by default unless pending video is youtube
     if (!pendingVideo || !extractYtId(pendingVideo.url)) {
-        if (ytContainer) ytContainer.style.display = "none";
+        const wrapper = getYtWrapper();
+        if (wrapper) wrapper.style.display = "none";
     }
 
     if (pendingVideo) {
-        handleVideoSwitch(pendingVideo.url, pendingVideo.title);
+        handleVideoSwitch(pendingVideo.url, pendingVideo.title, false, pendingVideo.startTime || 0);
         pendingVideo = null;
     }
 
@@ -638,6 +647,35 @@ document.getElementById("select-local-file-btn").addEventListener("click", () =>
     document.getElementById("local-file-input").click();
 });
 
+document.getElementById("host-stream-btn").addEventListener("click", async () => {
+    const pathInput = document.getElementById("host-stream-path").value;
+    if (!pathInput) return showToast("error", "Please enter a valid file path.");
+    if (isLocked && !isHost) return showToast("error", "Only the room host can change videos.");
+
+    try {
+        const response = await fetch('/api/stream/host', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filePath: pathInput })
+        });
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(errText || 'Failed to start stream.');
+        }
+        const data = await response.json();
+        
+        // Host streams it directly
+        const title = pathInput.split(/[\\/]/).pop();
+        if (isHost) {
+            connection.invoke("ChangeVideo", currentRoom, data.streamUrl, title, 0.0);
+        }
+        showToast("success", "Media streaming started successfully!");
+    } catch (err) {
+        showToast("error", "Error starting stream: " + err.message);
+        console.error("Streaming error:", err);
+    }
+});
+
 document.getElementById("local-file-input").addEventListener("change", (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
@@ -671,7 +709,8 @@ function loadLocalFileStream(blobUrl, fileName, fileSize = 0) {
     const promptOverlay = document.getElementById("local-file-prompt-overlay");
     if (promptOverlay) promptOverlay.classList.add("d-none");
 
-    if (ytContainer) ytContainer.style.display = "none";
+    const wrapper = getYtWrapper();
+    if (wrapper) wrapper.style.display = "none";
     if (iframePlayer) iframePlayer.style.display = "none";
     html5Player.style.display = "block";
     html5Player.src = blobUrl;
@@ -975,7 +1014,8 @@ function resetAllPlayers() {
     }
 
     // 5. Hide player containers
-    if (ytContainer) ytContainer.style.display = "none";
+    const wrapper = getYtWrapper();
+    if (wrapper) wrapper.style.display = "none";
     if (html5Player) html5Player.style.display = "none";
     if (iframePlayer) iframePlayer.style.display = "none";
     const promptOverlay = document.getElementById("local-file-prompt-overlay");
@@ -1004,6 +1044,10 @@ function handleVideoSwitch(url, title, notifyServer = false, startTime = 0) {
             if (startTime > 0) {
                 html5Player.currentTime = startTime;
             }
+            const hostIsPlaying = lastReceivedState?.isPlaying !== undefined ? lastReceivedState.isPlaying : lastReceivedState?.IsPlaying;
+            if (hostIsPlaying) {
+                html5Player.play().catch(e => console.log("Autoplay caught on local switch:", e));
+            }
         } else {
             // User HAS NOT selected local video file yet!
             html5Player.style.display = "none";
@@ -1022,11 +1066,12 @@ function handleVideoSwitch(url, title, notifyServer = false, startTime = 0) {
     const ytId = extractYtId(url);
 
     if (ytId) {
-        ytContainer.style.display = "block";
+        const wrapper = getYtWrapper();
+        if (wrapper) wrapper.style.display = "block";
         if (isPlayerReady && ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
             ytPlayer.loadVideoById({ 'videoId': ytId, 'startSeconds': startTime });
         } else {
-            pendingVideo = { url: url, title: title };
+            pendingVideo = { url: url, title: title, startTime: startTime };
         }
     } else if (url.match(/\.m3u8($|\?)/i)) {
         html5Player.style.display = "block";
@@ -1035,16 +1080,16 @@ function handleVideoSwitch(url, title, notifyServer = false, startTime = 0) {
             hlsInstance.loadSource(url);
             hlsInstance.attachMedia(html5Player);
             hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
-                html5Player.currentTime = startTime;
+                if (startTime > 0) html5Player.currentTime = startTime;
             });
         } else if (html5Player.canPlayType('application/vnd.apple.mpegurl')) {
             html5Player.src = url;
-            html5Player.currentTime = startTime;
+            if (startTime > 0) html5Player.currentTime = startTime;
         }
-    } else if (url.match(/\.(mp4|mkv|webm|avi|mov|ogg)(\?.*)?$/i)) {
+    } else if (url.match(/\.(mp4|mkv|webm|avi|mov|ogg)(\?.*)?$/i) || url.includes('/api/stream/')) {
         html5Player.style.display = "block";
         html5Player.src = url;
-        html5Player.currentTime = startTime;
+        if (startTime > 0) html5Player.currentTime = startTime;
         html5Player.play().catch(e => console.log("Autoplay caught:", e));
     } else {
         iframePlayer.style.display = "block";
@@ -1058,42 +1103,44 @@ function handleVideoSwitch(url, title, notifyServer = false, startTime = 0) {
 }
 
 function getPlayerCurrentTime() {
-    if (ytContainer.style.display !== "none" && isPlayerReady && ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
-        return ytPlayer.getCurrentTime();
-    } else if (html5Player.style.display !== "none") {
-        return html5Player.currentTime;
+    if (isYtActive() && isPlayerReady && ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
+        return ytPlayer.getCurrentTime() || 0;
+    } else if (html5Player && html5Player.style.display !== "none") {
+        return html5Player.currentTime || 0;
     }
     return 0;
 }
 
 function seekPlayerTo(time) {
-    if (ytContainer.style.display !== "none" && isPlayerReady && ytPlayer && typeof ytPlayer.seekTo === 'function') {
+    if (isYtActive() && isPlayerReady && ytPlayer && typeof ytPlayer.seekTo === 'function') {
         ytPlayer.seekTo(time, true);
-    } else if (html5Player.style.display !== "none") {
+    } else if (html5Player && html5Player.style.display !== "none") {
         html5Player.currentTime = time;
     }
 }
 
 function startPlayerPlayback() {
-    if (ytContainer.style.display !== "none" && isPlayerReady && ytPlayer && typeof ytPlayer.playVideo === 'function') {
+    if (isYtActive() && isPlayerReady && ytPlayer && typeof ytPlayer.playVideo === 'function') {
         ytPlayer.playVideo();
-    } else if (html5Player.style.display !== "none") {
-        html5Player.play();
+        return Promise.resolve();
+    } else if (html5Player && html5Player.style.display !== "none") {
+        return html5Player.play().catch(err => console.log("HTML5 play error:", err));
     }
+    return Promise.resolve();
 }
 
 function pausePlayerPlayback() {
-    if (ytContainer.style.display !== "none" && isPlayerReady && ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
+    if (isYtActive() && isPlayerReady && ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
         ytPlayer.pauseVideo();
-    } else if (html5Player.style.display !== "none") {
+    } else if (html5Player && html5Player.style.display !== "none") {
         html5Player.pause();
     }
 }
 
 function isPlayerActuallyPlaying() {
-    if (ytContainer.style.display !== "none" && isPlayerReady && ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
+    if (isYtActive() && isPlayerReady && ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
         return ytPlayer.getPlayerState() === YT.PlayerState.PLAYING;
-    } else if (html5Player.style.display !== "none") {
+    } else if (html5Player && html5Player.style.display !== "none") {
         return !html5Player.paused;
     }
     return false;
@@ -1128,18 +1175,18 @@ function checkDriftAndStateSync() {
         const hostTime = getEstimatedHostTime();
 
         const isMediaActive = (html5Player && html5Player.style.display !== "none" && activeBlobUrl) ||
-                              (ytContainer && ytContainer.style.display !== "none" && isPlayerReady);
+                              isYtActive();
 
         if (isMediaActive) {
             // Play/Pause state sync
             if (hostIsPlaying && !isPlayingLocally) {
-                startPlayerPlayback().catch(err => console.log("Play sync error:", err));
+                startPlayerPlayback();
             } else if (!hostIsPlaying && isPlayingLocally) {
                 pausePlayerPlayback();
             }
 
             // Seek / Drift sync
-            if (playerTime !== null) {
+            if (playerTime !== null && playerTime !== undefined) {
                 const difference = hostTime - playerTime;
                 const absDiff = Math.abs(difference);
 
@@ -1228,7 +1275,7 @@ function appendChatMessage(username, message, timestamp) {
         if (userBadge) currentUsername = userBadge.innerText.trim();
     } catch(e) {}
 
-    const isSelf = username && currentUsername && (username.toLowerCase() === currentUsername.toLowerCase() || username.toLowerCase().split(String.fromCharCode(64))[0] === currentUsername.toLowerCase());
+    const isSelf = username && currentUsername && (username.toLowerCase() === currentUsername.toLowerCase() || username.toLowerCase().split('@@')[0] === currentUsername.toLowerCase());
 
     const timeStr = timestamp ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
