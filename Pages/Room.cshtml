@@ -104,12 +104,12 @@
             <!-- Ambient Video Screen Frame -->
             <div class="player-wrapper mb-3">
                 <div class="ratio ratio-16x9 position-relative">
-                    <div id="player-container" class="w-100 h-100 d-flex align-items-center justify-content-center position-relative">
-                        <div id="youtube-player-wrapper" class="w-100 h-100" style="display: none;"><div id="youtube-player" class="w-100 h-100"></div></div>
-                        <video id="html5-player" controls class="w-100 h-100" style="display: none;">
+                    <div id="player-container" class="w-100 h-100 position-absolute top-0 start-0 bg-black overflow-hidden">
+                        <div id="youtube-player-wrapper" class="w-100 h-100 position-absolute top-0 start-0" style="display: none;"><div id="youtube-player" class="w-100 h-100"></div></div>
+                        <video id="html5-player" controls class="w-100 h-100 position-absolute top-0 start-0" style="display: none;">
                             Your browser does not support HTML5 video player playback.
                         </video>
-                        <iframe id="iframe-player" class="w-100 h-100 border-0" style="display: none;" allowfullscreen></iframe>
+                        <iframe id="iframe-player" class="w-100 h-100 position-absolute top-0 start-0 border-0" style="display: none;" allowfullscreen></iframe>
 
                         <!-- Local Movie Picker Overlay Prompt -->
                         <div id="local-file-prompt-overlay" class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center p-4 text-center bg-dark bg-opacity-90 rounded-3 border border-secondary border-opacity-20 d-none" style="z-index: 20;">
