@@ -15,116 +15,132 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
         body {
-            background-color: #f8f9fa;
+            background-color: #090d16;
+            color: #f8fafc;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: 'Plus Jakarta Sans', Arial, Helvetica, sans-serif;
             margin: 0;
         }
         .top-navbar {
-            padding: 20px 40px;
+            padding: 16px 36px;
             display: flex;
             align-items: center;
+            border-bottom: 1px solid #1e293b;
+            background: #073F78;
         }
         .brand-logo {
-            color: #6f42c1;
-            font-size: 1.2rem;
-            font-weight: 600;
+            color: #ffffff;
+            font-size: 1.35rem;
+            font-weight: 700;
             text-decoration: none;
             display: flex;
             align-items: center;
             gap: 10px;
+            letter-spacing: -0.02em;
+        }
+        .brand-logo i {
+            color: #EF0039;
         }
         .main-container {
             flex: 1;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 30px 20px;
+            background-color: #090d16;
         }
         .login-card {
             width: 100%;
-            max-width: 480px;
-            background: white;
+            max-width: 440px;
+            background: #0e1726;
             border-radius: 12px;
-            padding: 45px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            border: 1px solid #eaeaea;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            border: 1px solid #1e293b;
+            color: #ffffff;
         }
         .icon-circle {
-            width: 50px;
-            height: 50px;
-            background: #f3eafd;
-            color: #6f42c1;
-            border-radius: 50%;
+            width: 54px;
+            height: 54px;
+            background: #EF0039;
+            color: #ffffff;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 20px auto;
-            font-size: 1.25rem;
+            font-size: 1.35rem;
         }
         .form-control {
-            height: 48px;
+            height: 46px;
             border-radius: 8px;
-            border: 1px solid #dee2e6;
+            background-color: #162032 !important;
+            border: 1px solid #28364f !important;
+            color: #ffffff !important;
             padding-left: 40px;
             font-size: 0.95rem;
         }
+        .form-control::placeholder {
+            color: #64748b !important;
+        }
         .form-control:focus {
-            box-shadow: none;
-            border-color: #6f42c1;
+            box-shadow: 0 0 0 2px rgba(239, 0, 57, 0.4) !important;
+            border-color: #EF0039 !important;
         }
         .input-icon-wrap {
             position: relative;
         }
         .input-icon-wrap i {
             position: absolute;
-            left: 15px;
-            top: 16px;
-            color: #6c757d;
+            left: 14px;
+            top: 15px;
+            color: #94a3b8;
         }
         .btn-signin {
-            background-color: #6f42c1;
-            border-color: #6f42c1;
+            background-color: #EF0039;
+            border: none;
             color: white;
-            height: 48px;
+            height: 46px;
             border-radius: 8px;
-            font-weight: 500;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
         }
         .btn-signin:hover {
-            background-color: #5d35a7;
-            border-color: #5d35a7;
+            background-color: #d00032;
             color: white;
         }
         .btn-register {
-            background-color: white;
-            border: 1px solid #dee2e6;
-            color: #333;
-            height: 48px;
+            background-color: #073F78;
+            border: 1px solid #073F78;
+            color: #ffffff;
+            height: 46px;
             border-radius: 8px;
-            font-weight: 500;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
         }
         .btn-register:hover {
-            background-color: #f8f9fa;
+            background-color: #052e59;
+            color: #ffffff;
         }
         .btn-google {
-            background-color: #dc3545;
-            border-color: #dc3545;
-            color: white;
-            height: 48px;
+            background-color: #162032;
+            border: 1px solid #28364f;
+            color: #ffffff;
+            height: 46px;
             border-radius: 8px;
-            font-weight: 500;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
         }
         .btn-google:hover {
-            background-color: #bb2d3b;
-            border-color: #b02a37;
-            color: white;
+            background-color: #1e2c45;
+            color: #ffffff;
         }
         .divider-text {
             text-align: center;
             position: relative;
-            margin: 20px 0;
+            margin: 24px 0;
         }
         .divider-text::before {
             content: "";
@@ -133,13 +149,13 @@
             left: 0;
             width: 100%;
             height: 1px;
-            background: #eaeaea;
+            background: #1e293b;
         }
         .divider-text span {
-            background: white;
-            padding: 0 15px;
+            background: #0e1726;
+            padding: 0 12px;
             position: relative;
-            color: #6c757d;
+            color: #64748b;
             font-size: 0.85rem;
         }
     </style>
@@ -158,13 +174,13 @@
             <i class="fa-solid fa-film"></i>
         </div>
         
-        <h2 class="text-center fw-bold mb-1" style="font-size: 1.6rem; color: #212529;">MovieSync</h2>
-        <p class="text-center text-muted mb-4" style="font-size: 0.9rem;">Watch together in real-time</p>
+        <h2 class="text-center fw-bold mb-1" style="font-size: 1.6rem; color: #ffffff;">MovieSync</h2>
+        <p class="text-center mb-4" style="font-size: 0.9rem; color: #94a3b8;">Watch together in real-time</p>
 
         <div id="error-alert" class="alert alert-danger d-none py-2 mb-3" role="alert" style="font-size: 0.9rem;"></div>
 
         <div class="mb-3">
-            <label class="form-label text-muted small fw-bold">Email Address</label>
+            <label class="form-label small fw-bold" style="color: #cbd5e1;">Email Address</label>
             <div class="input-icon-wrap">
                 <i class="fa-regular fa-envelope"></i>
                 <input id="email" type="email" class="form-control" placeholder="roshni@gmail.com" />
@@ -172,7 +188,7 @@
         </div>
 
         <div class="mb-4">
-            <label class="form-label text-muted small fw-bold">Password</label>
+            <label class="form-label small fw-bold" style="color: #cbd5e1;">Password</label>
             <div class="input-icon-wrap">
                 <i class="fa-solid fa-lock"></i>
                 <input id="password" type="password" class="form-control" placeholder="********" />
