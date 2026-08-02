@@ -158,11 +158,17 @@
                 </ul>
 
                 <div class="tab-content" id="videoSourceTabsContent">
-                    <!-- URL Loader Tab -->
+                    <!-- URL & Local File Loader Tab -->
                     <div class="tab-pane fade show active" id="url-loader-pane" role="tabpanel">
                         <div class="row g-2">
                             <div class="col">
-                                <input type="text" id="video-url-input" class="form-control form-control-custom" placeholder="Paste YouTube link, direct MP4 URL, or web stream..." />
+                                <input type="text" id="video-url-input" class="form-control form-control-custom" placeholder="Paste YouTube link, direct video URL, or choose local video file..." />
+                            </div>
+                            <div class="col-auto">
+                                <input type="file" id="local-file-input" accept="video/*,.mp4,.mkv,.webm,.avi,.mov,.ogg" class="d-none" />
+                                <button id="select-local-file-btn" type="button" class="btn btn-outline-light px-3 h-100" title="Choose local video file from your folder">
+                                    <i class="bi bi-folder2-open me-1 text-warning"></i> Browse File
+                                </button>
                             </div>
                             <div class="col-auto">
                                 <button id="load-video-btn" class="btn btn-primary-gradient px-4 h-100">
@@ -170,8 +176,9 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="form-text text-muted mt-2 small">
-                            <i class="bi bi-info-circle me-1"></i> Supports standard YouTube URLs and file links ending in <code>.mp4</code>, <code>.webm</code>, <code>.ogg</code>.
+                        <div class="form-text text-muted mt-2 small d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-info-circle me-1"></i> Supports YouTube URLs, direct <code>.mp4</code>/<code>.webm</code> links, and local video files (<code>.mp4</code>, <code>.mkv</code>, <code>.webm</code>, <code>.mov</code>).</span>
+                            <span id="selected-file-badge" class="badge bg-purple-subtle text-purple d-none"><i class="bi bi-file-earmark-play me-1"></i><span id="selected-file-name"></span></span>
                         </div>
                     </div>
 
@@ -613,6 +620,47 @@ document.getElementById("favorite-current-btn").addEventListener("click", async 
     await connection.invoke("ToggleFavorite", currentRoom, activeVideoUrl, activeVideoTitle);
 });
 
+document.getElementById("select-local-file-btn").addEventListener("click", () => {
+    document.getElementById("local-file-input").click();
+});
+
+document.getElementById("local-file-input").addEventListener("change", (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    if (isLocked && !isHost) {
+        return showToast("error", "Only the room host can change videos.");
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    const fileName = file.name;
+
+    document.getElementById("video-url-input").value = fileName;
+
+    const badge = document.getElementById("selected-file-badge");
+    const nameEl = document.getElementById("selected-file-name");
+    if (badge && nameEl) {
+        nameEl.innerText = fileName;
+        badge.classList.remove("d-none");
+    }
+
+    loadLocalFileStream(objectUrl, fileName);
+});
+
+function loadLocalFileStream(blobUrl, fileName) {
+    toggleLoading(true, "Loading Local Video...");
+
+    activeVideoUrl = blobUrl;
+    activeVideoTitle = fileName;
+
+    handleVideoSwitch(blobUrl, fileName, false, 0.0);
+
+    if (currentRoom) {
+        connection.invoke("ChangeVideo", currentRoom, blobUrl, fileName, 0.0);
+    }
+    showToast("success", `Loaded local video: ${fileName}`);
+}
+
 document.getElementById("load-video-btn").addEventListener("click", () => {
     const url = document.getElementById("video-url-input").value.trim();
     if (!url) return showToast("error", "Please enter a valid video stream URL.");
@@ -834,12 +882,14 @@ function handleVideoSwitch(url, title, notifyServer = false, startTime = 0) {
             html5Player.src = url;
             html5Player.currentTime = startTime;
         }
-    } else if (url.match(/\.(mp4|webm|ogg)(\?.*)?$/i)) {
+    } else if (url.startsWith("blob:") || url.match(/\.(mp4|mkv|webm|avi|mov|ogg)(\?.*)?$/i)) {
         ytContainer.style.display = "none";
         html5Player.style.display = "block";
         iframePlayer.style.display = "none";
 
-        html5Player.src = url;
+        if (html5Player.src !== url) {
+            html5Player.src = url;
+        }
         html5Player.currentTime = startTime;
     } else {
         ytContainer.style.display = "none";
