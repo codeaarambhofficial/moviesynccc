@@ -1711,7 +1711,7 @@ function updateParticipantsList(participants) {
             <div class="d-flex align-items-center gap-2">
                 <div class="rounded-circle bg-primary bg-opacity-25 text-primary d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px; font-size: 0.85rem;">
                     ${p.username ? p.username.substring(0, 2).toUpperCase() : 'U'}
-                </span>
+                </div>
                 <span class="small fw-medium">${p.username}</span>
             </div>
             ${p.isHost ? '<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill small">Host</span>' : ''}
@@ -1942,8 +1942,6 @@ function triggerFloatingReaction(emoji) {
 // WebRTC Watch Party Audio/Video Integration & Production P2P / TURN Engine
 let isInCall = false;
 let lastParticipantsList = [];
-let localStream = null;
-const peerConnections = {}; // targetConnectionId -> { pc, pendingCandidates, iceRestartTimer, targetUsername }
 const earlyCandidatesQueue = {}; // senderConnectionId -> [ candidatePayloads ]
 
 // Comprehensive ICE Server configuration including public STUNs and TURN relays (UDP, TCP, TLS/443)
