@@ -1,2 +1,17 @@
+# .NET build outputs
+bin/
+obj/
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Environment & Secrets
 .env
 firebase-service-account.json
+
+# Node & web artifacts
+node_modules/
+dist/

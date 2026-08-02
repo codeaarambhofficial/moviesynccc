@@ -647,7 +647,7 @@ document.getElementById("local-file-input").addEventListener("change", (e) => {
     loadLocalFileStream(objectUrl, fileName);
 });
 
-function loadLocalFileStream(blobUrl, fileName) {
+function loadLocalFileStream(blobUrl, fileName, fileSize = 0) {
     toggleLoading(true, "Loading Local Video...");
 
     activeVideoUrl = blobUrl;
@@ -656,7 +656,10 @@ function loadLocalFileStream(blobUrl, fileName) {
     handleVideoSwitch(blobUrl, fileName, false, 0.0);
 
     if (currentRoom) {
-        connection.invoke("ChangeVideo", currentRoom, blobUrl, fileName, 0.0);
+        connection.invoke("SelectLocalMedia", currentRoom, fileName, fileSize).catch(err => console.log("SelectLocalMedia error:", err));
+        if (isHost) {
+            connection.invoke("ChangeVideo", currentRoom, "local://" + fileName, fileName, 0.0);
+        }
     }
     showToast("success", `Loaded local video: ${fileName}`);
 }
@@ -779,6 +782,46 @@ connection.on("VideoPaused", (time) => {
 });
 
 // >>> CHANGED: VideoSought now updates lastReceivedState
+connection.on("PositionSynced", (hostTime, rate) => {
+    if (isIncomingEvent || isHost || !currentRoom) return;
+    const localTime = getPlayerCurrentTime();
+    if (localTime !== null && localTime !== undefined) {
+        const difference = hostTime - localTime;
+        const absDiff = Math.abs(difference);
+
+        if (absDiff < 0.2) {
+            if (html5Player && html5Player.style.display !== "none") html5Player.playbackRate = 1.0;
+        } else if (absDiff >= 0.2 && absDiff < 1.0) {
+            if (html5Player && html5Player.style.display !== "none") {
+                html5Player.playbackRate = difference > 0 ? 1.02 : 0.98;
+            }
+        } else if (absDiff >= 1.0) {
+            seekPlayerTo(hostTime);
+            if (html5Player && html5Player.style.display !== "none") html5Player.playbackRate = 1.0;
+        }
+    }
+});
+
+connection.on("MediaMetadataChanged", (title, fileSize) => {
+    activeVideoTitle = title;
+    const titleEl = document.getElementById("active-video-title");
+    if (titleEl) titleEl.innerText = title;
+
+    if (!activeBlobUrl) {
+        showToast("info", `Host changed movie to "${title}". Select your local file to synchronize!`);
+        const badge = document.getElementById("selected-file-badge");
+        const nameEl = document.getElementById("selected-file-name");
+        if (badge && nameEl) {
+            nameEl.innerText = `Please select local file: ${title}`;
+            badge.classList.remove("d-none");
+        }
+    }
+});
+
+connection.on("UserLoadedMedia", (username, title) => {
+    showToast("success", `${username} loaded local file: ${title}`);
+});
+
 connection.on("VideoSought", (time) => {
     isIncomingEvent = true;
     seekPlayerTo(time);
@@ -1004,12 +1047,29 @@ function getEstimatedHostTime() {
 }
 
 function checkDriftAndStateSync() {
-    if (!lastReceivedState || !currentRoom) return;
+    if (!currentRoom) return;
     const playerTime = getPlayerCurrentTime();
-    const hostTime = getEstimatedHostTime();
-    if (playerTime !== null && Math.abs(playerTime - hostTime) > 4.5) {
-        console.log(`Drift detected: Player is at ${playerTime.toFixed(1)}s, Host is at ${hostTime.toFixed(1)}s. Resyncing...`);
-        seekPlayerTo(hostTime);
+    
+    if (isHost && isPlayerActuallyPlaying()) {
+        const rate = (html5Player && html5Player.style.display !== "none") ? html5Player.playbackRate : 1.0;
+        connection.invoke("SyncPosition", currentRoom, playerTime, rate).catch(err => console.log("SyncPosition error:", err));
+    } else if (!isHost && lastReceivedState) {
+        const hostTime = getEstimatedHostTime();
+        if (playerTime !== null) {
+            const difference = hostTime - playerTime;
+            const absDiff = Math.abs(difference);
+
+            if (absDiff < 0.2) {
+                if (html5Player && html5Player.style.display !== "none") html5Player.playbackRate = 1.0;
+            } else if (absDiff >= 0.2 && absDiff < 1.0) {
+                if (html5Player && html5Player.style.display !== "none") {
+                    html5Player.playbackRate = difference > 0 ? 1.02 : 0.98;
+                }
+            } else if (absDiff >= 1.0) {
+                seekPlayerTo(hostTime);
+                if (html5Player && html5Player.style.display !== "none") html5Player.playbackRate = 1.0;
+            }
+        }
     }
 }
 
@@ -1081,7 +1141,7 @@ function appendChatMessage(username, message, timestamp) {
         if (userBadge) currentUsername = userBadge.innerText.trim();
     } catch(e) {}
 
-    const isSelf = username && currentUsername && (username.toLowerCase() === currentUsername.toLowerCase() || username.toLowerCase().split('@')[0] === currentUsername.toLowerCase());
+    const isSelf = username && currentUsername && (username.toLowerCase() === currentUsername.toLowerCase() || username.toLowerCase().split('@@')[0] === currentUsername.toLowerCase());
 
     const timeStr = timestamp ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
