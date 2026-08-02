@@ -8,8 +8,8 @@ namespace MovieSync.Web.Services
         public string HostConnectionId { get; set; } = string.Empty;
         public string HostUsername { get; set; } = string.Empty;
         public bool IsLocked { get; set; } // When true, only host can seek/play/pause/change videos
-        public string CurrentVideoUrl { get; set; } = "https://www.youtube.com/watch?v=sElE_BfQ67s"; // Default video
-        public string CurrentVideoTitle { get; set; } = "Default MovieSync Video";
+        public string CurrentVideoUrl { get; set; } = "local://Movie"; // Default local movie
+        public string CurrentVideoTitle { get; set; } = "Local Movie";
         public bool IsPlaying { get; set; }
         public double CurrentTime { get; set; }
         public DateTime LastStateUpdate { get; set; } = DateTime.UtcNow;

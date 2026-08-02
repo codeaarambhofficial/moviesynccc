@@ -104,12 +104,27 @@
             <!-- Ambient Video Screen Frame -->
             <div class="player-wrapper mb-3">
                 <div class="ratio ratio-16x9 position-relative">
-                    <div id="player-container" class="w-100 h-100 d-flex align-items-center justify-content-center">
-                        <div id="youtube-player" class="w-100 h-100"></div>
+                    <div id="player-container" class="w-100 h-100 d-flex align-items-center justify-content-center position-relative">
+                        <div id="youtube-player" class="w-100 h-100" style="display: none;"></div>
                         <video id="html5-player" controls class="w-100 h-100" style="display: none;">
                             Your browser does not support HTML5 video player playback.
                         </video>
                         <iframe id="iframe-player" class="w-100 h-100 border-0" style="display: none;" allowfullscreen></iframe>
+
+                        <!-- Local Movie Picker Overlay Prompt -->
+                        <div id="local-file-prompt-overlay" class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center p-4 text-center bg-dark bg-opacity-90 rounded-3 border border-secondary border-opacity-20 d-none" style="z-index: 20;">
+                            <div class="bg-primary bg-opacity-20 p-3 rounded-circle mb-3 text-primary fs-1">
+                                <i class="bi bi-film"></i>
+                            </div>
+                            <h4 class="fw-bold text-light mb-2">Local Movie Sync</h4>
+                            <p class="text-muted mb-4 fs-6" id="local-prompt-text" style="max-width: 480px;">Select your local video file to synchronize playback with the room.</p>
+                            <button class="btn btn-primary-gradient px-4 py-2.5 rounded-pill shadow fs-6 fw-semibold" onclick="document.getElementById('local-file-input').click()">
+                                <i class="bi bi-folder2-open me-2 text-warning"></i> Select Local Video File
+                            </button>
+                            <div class="mt-3 text-muted small">
+                                <i class="bi bi-shield-check me-1 text-success"></i> Your media file is played locally and never uploaded anywhere.
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Floating Reactions Overlay Canvas/Container -->
@@ -404,15 +419,14 @@ function onPlayerReady(event) {
     isPlayerReady = true;
     console.log("YouTube Player is ready.");
     
+    // Hide youtube container by default unless pending video is youtube
+    if (!pendingVideo || !extractYtId(pendingVideo.url)) {
+        if (ytContainer) ytContainer.style.display = "none";
+    }
+
     if (pendingVideo) {
         handleVideoSwitch(pendingVideo.url, pendingVideo.title);
         pendingVideo = null;
-    }
-
-    if (lastReceivedState) {
-        setTimeout(() => {
-            syncPlayerToState(lastReceivedState);
-        }, 1000);
     }
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -652,8 +666,20 @@ function loadLocalFileStream(blobUrl, fileName, fileSize = 0) {
 
     activeVideoUrl = blobUrl;
     activeVideoTitle = fileName;
+    activeBlobUrl = blobUrl;
 
-    handleVideoSwitch(blobUrl, fileName, false, 0.0);
+    const promptOverlay = document.getElementById("local-file-prompt-overlay");
+    if (promptOverlay) promptOverlay.classList.add("d-none");
+
+    if (ytContainer) ytContainer.style.display = "none";
+    if (iframePlayer) iframePlayer.style.display = "none";
+    html5Player.style.display = "block";
+    html5Player.src = blobUrl;
+
+    const titleEl = document.getElementById("active-video-title");
+    if (titleEl) titleEl.innerText = fileName;
+
+    toggleLoading(false);
 
     if (currentRoom) {
         connection.invoke("SelectLocalMedia", currentRoom, fileName, fileSize).catch(err => console.log("SelectLocalMedia error:", err));
@@ -734,7 +760,9 @@ connection.on("ReceiveRoomState", (state) => {
 
     lastReceivedState = state;
     if (activeVideoUrl) {
-        handleVideoSwitch(activeVideoUrl, activeVideoTitle, false);
+        handleVideoSwitch(activeVideoUrl, activeVideoTitle, false, state.currentTime || state.CurrentTime || 0);
+    } else {
+        handleVideoSwitch("local://Movie", activeVideoTitle || "Local Movie", false, 0);
     }
 
     updateParticipantsList(state.participants || state.Participants);
@@ -815,6 +843,13 @@ connection.on("MediaMetadataChanged", (title, fileSize) => {
             nameEl.innerText = `Please select local file: ${title}`;
             badge.classList.remove("d-none");
         }
+        const promptText = document.getElementById("local-prompt-text");
+        if (promptText) {
+            promptText.innerText = `Host loaded movie "${title}". Select your local video file to start watching together!`;
+        }
+        const promptOverlay = document.getElementById("local-file-prompt-overlay");
+        if (promptOverlay) promptOverlay.classList.remove("d-none");
+        if (html5Player) html5Player.style.display = "none";
     }
 });
 
@@ -894,28 +929,16 @@ function extractYtId(url) {
 let activeBlobUrl = null;
 
 function resetAllPlayers() {
-    // 1. Pause HTML5 Video Player and clear its source
+    // 1. Pause HTML5 Video Player
     if (html5Player) {
         try {
             html5Player.pause();
-            html5Player.removeAttribute("src");
-            html5Player.load();
         } catch (e) {
             console.warn("HTML5 player reset error:", e);
         }
     }
 
-    // 2. Revoke previous local object URL if present
-    if (activeBlobUrl) {
-        try {
-            URL.revokeObjectURL(activeBlobUrl);
-        } catch (e) {
-            console.warn("Revoke blob URL error:", e);
-        }
-        activeBlobUrl = null;
-    }
-
-    // 3. Stop YouTube player if playing
+    // 2. Stop YouTube player if playing
     if (isPlayerReady && ytPlayer && typeof ytPlayer.stopVideo === 'function') {
         try {
             ytPlayer.stopVideo();
@@ -924,7 +947,7 @@ function resetAllPlayers() {
         }
     }
 
-    // 4. Destroy active HLS instance if any
+    // 3. Destroy active HLS instance if any
     if (hlsInstance) {
         try {
             hlsInstance.destroy();
@@ -934,21 +957,56 @@ function resetAllPlayers() {
         hlsInstance = null;
     }
 
-    // 5. Reset Iframe player
+    // 4. Reset Iframe player
     if (iframePlayer) {
         iframePlayer.src = "about:blank";
     }
 
-    // 6. Hide player containers
+    // 5. Hide player containers
     if (ytContainer) ytContainer.style.display = "none";
     if (html5Player) html5Player.style.display = "none";
     if (iframePlayer) iframePlayer.style.display = "none";
+    const promptOverlay = document.getElementById("local-file-prompt-overlay");
+    if (promptOverlay) promptOverlay.classList.add("d-none");
 }
 
 function handleVideoSwitch(url, title, notifyServer = false, startTime = 0) {
-    // Completely remove and stop previous playing video/audio
     resetAllPlayers();
 
+    const isLocalProtocol = !url || url.startsWith("local://") || url.startsWith("blob:");
+
+    if (isLocalProtocol) {
+        const cleanName = title || (url ? url.replace("local://", "") : "Local Movie");
+        const titleEl = document.getElementById("active-video-title");
+        if (titleEl) titleEl.innerText = cleanName;
+
+        if (activeBlobUrl) {
+            // User HAS selected their local video file!
+            html5Player.style.display = "block";
+            const promptOverlay = document.getElementById("local-file-prompt-overlay");
+            if (promptOverlay) promptOverlay.classList.add("d-none");
+
+            if (html5Player.src !== activeBlobUrl) {
+                html5Player.src = activeBlobUrl;
+            }
+            if (startTime > 0) {
+                html5Player.currentTime = startTime;
+            }
+        } else {
+            // User HAS NOT selected local video file yet!
+            html5Player.style.display = "none";
+            const promptOverlay = document.getElementById("local-file-prompt-overlay");
+            const promptText = document.getElementById("local-prompt-text");
+            if (promptText) {
+                promptText.innerText = `Room movie is set to "${cleanName}". Select your local video file to join synchronized watch!`;
+            }
+            if (promptOverlay) promptOverlay.classList.remove("d-none");
+        }
+        toggleLoading(false);
+        return;
+    }
+
+    // External streams (YouTube, HLS, direct link)
     const ytId = extractYtId(url);
 
     if (ytId) {
@@ -971,11 +1029,8 @@ function handleVideoSwitch(url, title, notifyServer = false, startTime = 0) {
             html5Player.src = url;
             html5Player.currentTime = startTime;
         }
-    } else if (url.startsWith("blob:") || url.match(/\.(mp4|mkv|webm|avi|mov|ogg)(\?.*)?$/i)) {
+    } else if (url.match(/\.(mp4|mkv|webm|avi|mov|ogg)(\?.*)?$/i)) {
         html5Player.style.display = "block";
-        if (url.startsWith("blob:")) {
-            activeBlobUrl = url;
-        }
         html5Player.src = url;
         html5Player.currentTime = startTime;
         html5Player.play().catch(e => console.log("Autoplay caught:", e));
