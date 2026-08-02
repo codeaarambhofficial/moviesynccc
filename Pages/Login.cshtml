@@ -14,16 +14,21 @@
     <!-- Favicon / Title Logo -->
     <link rel="icon" type="image/png" href="https://iili.io/CUd6N4f.md.png" />
     <link rel="shortcut icon" type="image/png" href="https://iili.io/CUd6N4f.md.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
+        body, input, button, select, textarea {
+            font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif !important;
+        }
         body {
             background-color: #090d16;
             color: #f8fafc;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            font-family: 'Plus Jakarta Sans', Arial, Helvetica, sans-serif;
             margin: 0;
         }
         .top-navbar {
@@ -43,9 +48,6 @@
             gap: 10px;
             letter-spacing: -0.02em;
         }
-        .brand-logo i {
-            color: #EF0039;
-        }
         .main-container {
             flex: 1;
             display: flex;
@@ -58,31 +60,19 @@
             width: 100%;
             max-width: 440px;
             background: #0e1726;
-            border-radius: 12px;
+            border-radius: 16px;
             padding: 40px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
             border: 1px solid #1e293b;
             color: #ffffff;
         }
-        .icon-circle {
-            width: 54px;
-            height: 54px;
-            background: #EF0039;
-            color: #ffffff;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px auto;
-            font-size: 1.35rem;
-        }
         .form-control {
-            height: 46px;
-            border-radius: 8px;
+            height: 48px;
+            border-radius: 10px;
             background-color: #162032 !important;
             border: 1px solid #28364f !important;
             color: #ffffff !important;
-            padding-left: 40px;
+            padding-left: 42px;
             font-size: 0.95rem;
         }
         .form-control::placeholder {
@@ -98,47 +88,58 @@
         .input-icon-wrap i {
             position: absolute;
             left: 14px;
-            top: 15px;
+            top: 16px;
             color: #94a3b8;
         }
         .btn-signin {
             background-color: #EF0039;
             border: none;
-            color: white;
-            height: 46px;
-            border-radius: 8px;
+            color: #ffffff !important;
+            height: 48px;
+            border-radius: 10px;
             font-weight: 600;
-            transition: background-color 0.2s ease;
+            font-size: 1rem;
+            transition: all 0.2s ease;
         }
         .btn-signin:hover {
             background-color: #d00032;
-            color: white;
+            color: #ffffff !important;
+            transform: translateY(-1px);
         }
         .btn-register {
             background-color: #073F78;
             border: 1px solid #073F78;
-            color: #ffffff;
-            height: 46px;
-            border-radius: 8px;
+            color: #ffffff !important;
+            height: 48px;
+            border-radius: 10px;
             font-weight: 600;
-            transition: background-color 0.2s ease;
+            font-size: 1rem;
+            transition: all 0.2s ease;
         }
         .btn-register:hover {
             background-color: #052e59;
-            color: #ffffff;
+            color: #ffffff !important;
+            transform: translateY(-1px);
         }
         .btn-google {
-            background-color: #162032;
-            border: 1px solid #28364f;
-            color: #ffffff;
-            height: 46px;
-            border-radius: 8px;
+            background-color: #111827;
+            border: 1px solid #374151;
+            color: #ffffff !important;
+            height: 48px;
+            border-radius: 10px;
             font-weight: 600;
-            transition: background-color 0.2s ease;
+            font-size: 0.98rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s ease;
         }
         .btn-google:hover {
-            background-color: #1e2c45;
-            color: #ffffff;
+            background-color: #1f2937;
+            border-color: #4b5563;
+            color: #ffffff !important;
+            transform: translateY(-1px);
         }
         .divider-text {
             text-align: center;
@@ -158,8 +159,9 @@
             background: #0e1726;
             padding: 0 12px;
             position: relative;
-            color: #64748b;
-            font-size: 0.85rem;
+            color: #94a3b8;
+            font-size: 0.88rem;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -177,13 +179,13 @@
             <img src="https://iili.io/CUdicRp.png" alt="MovieSync Logo" style="height: 64px; width: auto; object-fit: contain;" />
         </div>
         
-        <h2 class="text-center fw-bold mb-1" style="font-size: 1.6rem; color: #ffffff;">MovieSync</h2>
-        <p class="text-center mb-4" style="font-size: 0.9rem; color: #94a3b8;">Watch together in real-time</p>
+        <h2 class="text-center fw-bold mb-1" style="font-size: 1.65rem; color: #ffffff;">MovieSync</h2>
+        <p class="text-center mb-4" style="font-size: 0.92rem; color: #cbd5e1;">Watch together in real-time</p>
 
         <div id="error-alert" class="alert alert-danger d-none py-2 mb-3" role="alert" style="font-size: 0.9rem;"></div>
 
         <div class="mb-3">
-            <label class="form-label small fw-bold" style="color: #cbd5e1;">Email Address</label>
+            <label class="form-label small fw-bold" style="color: #e2e8f0;">Email Address</label>
             <div class="input-icon-wrap">
                 <i class="fa-regular fa-envelope"></i>
                 <input id="email" type="email" class="form-control" placeholder="roshni@gmail.com" />
@@ -191,7 +193,7 @@
         </div>
 
         <div class="mb-4">
-            <label class="form-label small fw-bold" style="color: #cbd5e1;">Password</label>
+            <label class="form-label small fw-bold" style="color: #e2e8f0;">Password</label>
             <div class="input-icon-wrap">
                 <i class="fa-solid fa-lock"></i>
                 <input id="password" type="password" class="form-control" placeholder="********" />
@@ -211,7 +213,13 @@
         </button>
 
         <button id="google-login-btn" type="button" class="btn btn-google w-100 shadow-sm">
-            <i class="fa-brands fa-google me-2"></i>Continue with Google
+            <svg width="20" height="20" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+                <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.616z" fill="#4285F4"/>
+                <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
+                <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+                <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+            </svg>
+            <span style="color: #ffffff; font-weight: 600;">Continue with Google</span>
         </button>
     </div>
 </div>
@@ -220,7 +228,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCssJy7q2tdMSnHJ8xfj5Hl5HUqO1TKcrw",
@@ -233,6 +241,25 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+
+// Auto check existing session on page load
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        try {
+            const idToken = await user.getIdToken();
+            const response = await fetch(`/api/auth/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ idToken })
+            });
+            if (response.ok) {
+                redirectToRoom();
+            }
+        } catch (e) {
+            console.warn("Auto-login token refresh:", e);
+        }
+    }
+});
 
 async function handleAuth(actionType) {
     const email = document.getElementById('email').value.trim();

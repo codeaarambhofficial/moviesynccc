@@ -114,27 +114,6 @@
                         </video>
                         <iframe id="iframe-player" class="w-100 h-100 position-absolute top-0 start-0 border-0" style="display: none;" allowfullscreen></iframe>
 
-                        <!-- Local Movie Picker Overlay Prompt -->
-                        <div id="local-file-prompt-overlay" class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center p-4 text-center bg-dark bg-opacity-90 rounded-3 border border-secondary border-opacity-20 d-none" style="z-index: 20;">
-                            <div class="bg-primary bg-opacity-20 p-3 rounded-circle mb-3 text-primary fs-1">
-                                <i class="bi bi-film"></i>
-                            </div>
-                            <h4 class="fw-bold text-light mb-2">Media Stream Sync</h4>
-                            <p class="text-muted mb-4 fs-6" id="local-prompt-text" style="max-width: 480px;">Select a local video file (for yourself only) OR stream a file from this server to all participants.</p>
-                            <div class="d-flex flex-column gap-3 align-items-center w-100" style="max-width: 400px;">
-                                <button class="btn btn-primary-gradient px-4 py-2.5 rounded-pill shadow fs-6 fw-semibold w-100" onclick="document.getElementById('local-file-input').click()">
-                                    <i class="bi bi-folder2-open me-2 text-warning"></i> 1. Select Local Video File (Host Only)
-                                </button>
-                                <div class="text-muted small w-100 text-center text-uppercase fw-bold">OR STREAM TO ALL (LOCAL RUN)</div>
-                                <div class="input-group w-100">
-                                    <input type="text" id="host-stream-path" class="form-control" placeholder="C:\Movies\movie.mp4 or /home/movie.mkv" />
-                                    <button class="btn btn-success" id="host-stream-btn"><i class="bi bi-broadcast"></i> Stream to Room</button>
-                                </div>
-                            </div>
-                            <div class="mt-3 text-muted small">
-                                <i class="bi bi-info-circle me-1 text-info"></i> Streaming requires the server to be running on the host machine.
-                            </div>
-                        </div>
                     </div>
 
                     <!-- Floating Reactions Overlay Canvas/Container -->
@@ -146,7 +125,7 @@
             <div class="glass-panel p-2.5 px-3 mb-3 d-flex flex-wrap align-items-center justify-content-between gap-2 border border-white border-opacity-10 rounded-3">
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                     <span id="stream-status-badge" class="badge bg-success bg-opacity-20 text-success border border-success border-opacity-30 px-2.5 py-1.5 rounded-pill d-flex align-items-center gap-1.5 small">
-                        <i class="bi bi-broadcast text-danger animate-pulse"></i> <span id="stream-status-text">HLS Media Stream Active</span>
+                        <i class="bi bi-broadcast text-danger animate-pulse"></i> <span id="stream-status-text">Ready to Sync</span>
                     </span>
                     <span id="now-playing-badge" class="text-light small fw-medium text-truncate" style="max-width: 280px;" title="Current Title">
                         <i class="bi bi-film text-warning me-1"></i> <span id="active-video-title">No Video Loaded</span>
@@ -156,7 +135,7 @@
                 <div class="d-flex align-items-center gap-2 flex-wrap ms-auto">
                     <!-- Audio Track Selector -->
                     <div class="dropdown" id="audio-track-dropdown-container">
-                        <button class="btn btn-dark btn-sm rounded-pill px-2.5 py-1 text-muted border border-secondary border-opacity-20 dropdown-toggle small d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" id="audio-track-btn">
+                        <button class="btn btn-dark btn-sm rounded-pill px-2.5 py-1 text-light border border-secondary border-opacity-20 dropdown-toggle small d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" id="audio-track-btn">
                             <i class="bi bi-volume-up-fill text-info"></i> Audio Track
                         </button>
                         <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow" id="audio-track-menu">
@@ -166,7 +145,7 @@
 
                     <!-- Subtitle Track Selector -->
                     <div class="dropdown" id="sub-track-dropdown-container">
-                        <button class="btn btn-dark btn-sm rounded-pill px-2.5 py-1 text-muted border border-secondary border-opacity-20 dropdown-toggle small d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" id="sub-track-btn">
+                        <button class="btn btn-dark btn-sm rounded-pill px-2.5 py-1 text-light border border-secondary border-opacity-20 dropdown-toggle small d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" id="sub-track-btn">
                             <i class="bi bi-cc-square-fill text-warning"></i> Subtitles
                         </button>
                         <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow" id="sub-track-menu">
@@ -176,7 +155,7 @@
 
                     <!-- Playback Speed Selector -->
                     <div class="dropdown">
-                        <button class="btn btn-dark btn-sm rounded-pill px-2.5 py-1 text-muted border border-secondary border-opacity-20 dropdown-toggle small d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" id="speed-btn">
+                        <button class="btn btn-dark btn-sm rounded-pill px-2.5 py-1 text-light border border-secondary border-opacity-20 dropdown-toggle small d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" id="speed-btn">
                             <i class="bi bi-speedometer2 text-primary"></i> <span id="speed-label">1.0x</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow">
@@ -202,8 +181,8 @@
                             Live Watch Party Call
                             <span id="call-active-badge" class="badge bg-secondary rounded-pill px-2 py-1 small fw-normal">0 active</span>
                         </div>
-                        <div class="small text-muted" id="call-members-avatars">
-                            No active members in call yet
+                        <div class="small text-light" id="call-members-avatars" style="color: #cbd5e1 !important;">
+                            No active members in call yet. Click Join Video Call!
                         </div>
                     </div>
                 </div>
@@ -244,29 +223,26 @@
                 </div>
             </div>
 
-            <!-- Loader Tabs Panel (Load URL / Search YouTube) -->
+            <!-- Loader Tabs Panel (Load URL / Search YouTube / Share Screen) -->
             <div class="glass-panel p-4">
                 <ul class="nav nav-tabs nav-tabs-custom mb-3" id="videoSourceTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="url-tab" data-bs-toggle="tab" data-bs-target="#url-loader-pane" type="button" role="tab"><i class="bi bi-link-45deg me-1"></i> Stream Direct URL</button>
+                        <button class="nav-link active" id="url-tab" data-bs-toggle="tab" data-bs-target="#url-loader-pane" type="button" role="tab"><i class="bi bi-link-45deg me-1"></i> Direct URL / Stream</button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="search-tab" data-bs-toggle="tab" data-bs-target="#search-loader-pane" type="button" role="tab"><i class="bi bi-search me-1"></i> Search YouTube</button>
                     </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="screen-share-tab" data-bs-toggle="tab" data-bs-target="#screen-share-loader-pane" type="button" role="tab"><i class="bi bi-display me-1 text-info"></i> Share Screen</button>
+                    </li>
                 </ul>
 
                 <div class="tab-content" id="videoSourceTabsContent">
-                    <!-- URL & Local File Loader Tab -->
+                    <!-- URL Loader Tab -->
                     <div class="tab-pane fade show active" id="url-loader-pane" role="tabpanel">
                         <div class="row g-2">
                             <div class="col">
-                                <input type="text" id="video-url-input" class="form-control form-control-custom" placeholder="Paste YouTube link, direct video URL, or choose local video file..." />
-                            </div>
-                            <div class="col-auto">
-                                <input type="file" id="local-file-input" accept="video/*,.mp4,.mkv,.webm,.avi,.mov,.ogg" class="d-none" />
-                                <button id="select-local-file-btn" type="button" class="btn btn-outline-light px-3 h-100" title="Choose local video file from your folder">
-                                    <i class="bi bi-folder2-open me-1 text-warning"></i> Browse File
-                                </button>
+                                <input type="text" id="video-url-input" class="form-control form-control-custom" placeholder="Paste YouTube link, MP4 URL, or direct video stream..." />
                             </div>
                             <div class="col-auto">
                                 <button id="load-video-btn" class="btn btn-primary-gradient px-4 h-100">
@@ -274,9 +250,8 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="form-text text-muted mt-2 small d-flex justify-content-between align-items-center">
-                            <span><i class="bi bi-info-circle me-1"></i> Supports YouTube URLs, direct <code>.mp4</code>/<code>.webm</code> links, and local video files (<code>.mp4</code>, <code>.mkv</code>, <code>.webm</code>, <code>.mov</code>).</span>
-                            <span id="selected-file-badge" class="badge bg-purple-subtle text-purple d-none"><i class="bi bi-file-earmark-play me-1"></i><span id="selected-file-name"></span></span>
+                        <div class="form-text mt-2 small d-flex justify-content-between align-items-center" style="color: #cbd5e1 !important;">
+                            <span><i class="bi bi-info-circle me-1 text-info"></i> Supports YouTube links, direct <code>.mp4</code>/<code>.webm</code> video URLs, and HLS streams.</span>
                         </div>
                     </div>
 
@@ -294,23 +269,45 @@
                         </div>
                         <!-- Search results container -->
                         <div id="search-results-container" class="search-results-grid">
-                            <div class="text-center py-4 w-100 text-muted">
-                                <i class="bi bi-search fs-2 d-block mb-2"></i> Enter keywords to search YouTube
+                            <div class="text-center py-4 w-100 text-light" style="color: #cbd5e1 !important;">
+                                <i class="bi bi-search fs-2 d-block mb-2 text-info"></i> Enter keywords to search YouTube
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Screen Share Tab -->
+                    <div class="tab-pane fade" id="screen-share-loader-pane" role="tabpanel">
+                        <div class="p-4 text-center rounded-3" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1);">
+                            <div class="mb-3">
+                                <i class="bi bi-display fs-1 text-info"></i>
+                            </div>
+                            <h5 class="fw-bold text-white mb-2">Share Your Screen or Window</h5>
+                            <p class="mb-3 small" style="color: #e2e8f0 !important; max-width: 500px; margin: 0 auto;">Stream your browser tab, desktop, or application window live to the video theater frame in real time.</p>
+                            <div class="d-flex justify-content-center gap-2">
+                                <button id="start-screen-share-btn" onclick="toggleScreenShare()" class="btn btn-info px-4 py-2.5 rounded-pill shadow-sm fw-semibold d-flex align-items-center gap-2">
+                                    <i class="bi bi-display-fill" id="screen-share-icon"></i>
+                                    <span id="screen-share-btn-text">Start Screen Share</span>
+                                </button>
+                            </div>
+                            <div id="screen-share-status" class="mt-3 badge bg-info bg-opacity-20 text-info border border-info border-opacity-30 px-3 py-2 rounded-pill d-none">
+                                <i class="bi bi-circle-fill me-1 text-danger animate-pulse"></i> Screen Sharing Active
                             </div>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Quick Reactions Toolbar -->
-                <div class="d-flex align-items-center justify-content-between mt-3 pt-3 border-top border-light border-opacity-10">
-                    <span class="small fw-semibold text-muted"><i class="bi bi-emoji-smile me-1"></i> Broadcast Reaction:</span>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-glass btn-sm px-3 py-2 fs-6 rounded-pill" onclick="sendReaction('❤️')">❤️ Love</button>
-                        <button class="btn btn-glass btn-sm px-3 py-2 fs-6 rounded-pill" onclick="sendReaction('😂')">😂 Haha</button>
-                        <button class="btn btn-glass btn-sm px-3 py-2 fs-6 rounded-pill" onclick="sendReaction('😮')">😮 Wow</button>
-                        <button class="btn btn-glass btn-sm px-3 py-2 fs-6 rounded-pill" onclick="sendReaction('🔥')">🔥 Fire</button>
-                        <button class="btn btn-glass btn-sm px-3 py-2 fs-6 rounded-pill" onclick="sendReaction('👍')">👍 Like</button>
-                        <button class="btn btn-glass btn-sm px-3 py-2 fs-6 rounded-pill" onclick="sendReaction('🍿')">🍿 Popcorn</button>
+                <div class="d-flex align-items-center justify-content-between mt-3 pt-3 border-top border-light border-opacity-10 flex-wrap gap-2">
+                    <span class="small fw-bold text-white d-flex align-items-center gap-1.5" style="font-size: 0.95rem;">
+                        <i class="bi bi-emoji-smile text-warning fs-5"></i> Broadcast Reaction:
+                    </span>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-glass btn-sm px-3 py-2 fs-6 rounded-pill text-white border border-light border-opacity-10" onclick="sendReaction('❤️')">❤️ Love</button>
+                        <button class="btn btn-glass btn-sm px-3 py-2 fs-6 rounded-pill text-white border border-light border-opacity-10" onclick="sendReaction('😂')">😂 Haha</button>
+                        <button class="btn btn-glass btn-sm px-3 py-2 fs-6 rounded-pill text-white border border-light border-opacity-10" onclick="sendReaction('😮')">😮 Wow</button>
+                        <button class="btn btn-glass btn-sm px-3 py-2 fs-6 rounded-pill text-white border border-light border-opacity-10" onclick="sendReaction('🔥')">🔥 Fire</button>
+                        <button class="btn btn-glass btn-sm px-3 py-2 fs-6 rounded-pill text-white border border-light border-opacity-10" onclick="sendReaction('👍')">👍 Like</button>
+                        <button class="btn btn-glass btn-sm px-3 py-2 fs-6 rounded-pill text-white border border-light border-opacity-10" onclick="sendReaction('🍿')">🍿 Popcorn</button>
                     </div>
                 </div>
             </div>
@@ -719,53 +716,72 @@ document.getElementById("favorite-current-btn").addEventListener("click", async 
     await connection.invoke("ToggleFavorite", currentRoom, activeVideoUrl, activeVideoTitle);
 });
 
-document.getElementById("select-local-file-btn").addEventListener("click", () => {
-    document.getElementById("local-file-input").click();
-});
+const selectLocalBtn = document.getElementById("select-local-file-btn");
+if (selectLocalBtn) {
+    selectLocalBtn.addEventListener("click", () => {
+        const fileInput = document.getElementById("local-file-input");
+        if (fileInput) fileInput.click();
+    });
+}
 
-document.getElementById("host-stream-btn").addEventListener("click", async () => {
-    const pathInput = document.getElementById("host-stream-path").value.trim();
-    if (!pathInput) return showToast("error", "Please enter a valid file path.");
-    if (isLocked && !isHost) return showToast("error", "Only the room host can change videos.");
+const hostStreamBtn = document.getElementById("host-stream-btn");
+if (hostStreamBtn) {
+    hostStreamBtn.addEventListener("click", async () => {
+        const pathEl = document.getElementById("host-stream-path");
+        const pathInput = pathEl ? pathEl.value.trim() : "";
+        if (!pathInput) return showToast("error", "Please enter a valid file path.");
+        if (isLocked && !isHost) return showToast("error", "Only the room host can change videos.");
 
-    try {
-        const response = await fetch('/api/stream/register-path', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filePath: pathInput, roomId: currentRoom })
-        });
-        if (!response.ok) {
-            const errText = await response.text();
-            throw new Error(errText || 'Failed to start stream.');
+        try {
+            const response = await fetch('/api/stream/register-path', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filePath: pathInput, roomId: currentRoom })
+            });
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(errText || 'Failed to start stream.');
+            }
+            const data = await response.json();
+            
+            const title = pathInput.split(/[\\/]/).pop();
+            if (isHost) {
+                connection.invoke("ChangeVideo", currentRoom, data.hlsUrl || data.streamUrl, title, 0.0);
+            }
+            showToast("success", "Media streaming started successfully!");
+        } catch (err) {
+            showToast("error", "Error starting stream: " + err.message);
+            console.error("Streaming error:", err);
         }
-        const data = await response.json();
-        
-        // Host streams it directly
-        const title = pathInput.split(/[\\/]/).pop();
-        if (isHost) {
-            connection.invoke("ChangeVideo", currentRoom, data.hlsUrl || data.streamUrl, title, 0.0);
+    });
+}
+
+const localFileInput = document.getElementById("local-file-input");
+if (localFileInput) {
+    localFileInput.addEventListener("change", async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        if (isLocked && !isHost) {
+            return showToast("error", "Only the room host can change videos.");
         }
-        showToast("success", "Media streaming started successfully!");
-    } catch (err) {
-        showToast("error", "Error starting stream: " + err.message);
-        console.error("Streaming error:", err);
-    }
-});
 
-document.getElementById("local-file-input").addEventListener("change", async (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
+        const objectUrl = URL.createObjectURL(file);
+        const fileName = file.name;
 
-    if (isLocked && !isHost) {
-        return showToast("error", "Only the room host can change videos.");
-    }
+        const videoUrlInput = document.getElementById("video-url-input");
+        if (videoUrlInput) videoUrlInput.value = fileName;
 
-    const objectUrl = URL.createObjectURL(file);
-    const fileName = file.name;
+        const badge = document.getElementById("selected-file-badge");
+        const nameEl = document.getElementById("selected-file-name");
+        if (badge && nameEl) {
+            nameEl.innerText = fileName;
+            badge.classList.remove("d-none");
+        }
 
-    document.getElementById("video-url-input").value = fileName;
-
-    const badge = document.getElementById("selected-file-badge");
+        handleLocalFileStream(objectUrl, fileName, file.size);
+    });
+}
     const nameEl = document.getElementById("selected-file-name");
     if (badge && nameEl) {
         nameEl.innerText = fileName;
@@ -1663,6 +1679,92 @@ function renderFavorites(favorites) {
         item.addEventListener("click", () => loadVideoStream(f.url, f.title));
         favContainer.appendChild(item);
     });
+}
+
+// Screen Sharing Feature
+let isScreenSharing = false;
+let screenShareStream = null;
+
+async function toggleScreenShare() {
+    const btn = document.getElementById("start-screen-share-btn");
+    const btnText = document.getElementById("screen-share-btn-text");
+    const icon = document.getElementById("screen-share-icon");
+    const statusBadge = document.getElementById("screen-share-status");
+    const html5Player = document.getElementById("html5-player");
+    const youtubeWrapper = document.getElementById("youtube-player-wrapper");
+    const iframePlayer = document.getElementById("iframe-player");
+
+    if (!isScreenSharing) {
+        try {
+            screenShareStream = await navigator.mediaDevices.getDisplayMedia({
+                video: { cursor: "always" },
+                audio: true
+            });
+
+            isScreenSharing = true;
+
+            // Hide YouTube & IFrame, Show HTML5 Video Player with Screen Stream
+            if (youtubeWrapper) youtubeWrapper.style.display = "none";
+            if (iframePlayer) iframePlayer.style.display = "none";
+            if (html5Player) {
+                html5Player.style.display = "block";
+                html5Player.srcObject = screenShareStream;
+                html5Player.play().catch(e => console.log(e));
+            }
+
+            if (btn) btn.className = "btn btn-danger px-4 py-2.5 rounded-pill shadow-sm fw-semibold d-flex align-items-center gap-2";
+            if (icon) icon.className = "bi bi-stop-circle-fill";
+            if (btnText) btnText.innerText = "Stop Screen Share";
+            if (statusBadge) statusBadge.classList.remove("d-none");
+
+            const titleEl = document.getElementById("active-video-title");
+            const statusTextEl = document.getElementById("stream-status-text");
+            if (titleEl) titleEl.innerText = "Live Screen Share Broadcast";
+            if (statusTextEl) statusTextEl.innerText = "Screen Share Active";
+
+            showToast("success", "Screen share started successfully 🖥️");
+
+            screenShareStream.getVideoTracks()[0].onended = () => {
+                stopScreenShare();
+            };
+        } catch (err) {
+            console.warn("Screen share cancelled or failed:", err);
+            showToast("info", "Screen share cancelled.");
+        }
+    } else {
+        stopScreenShare();
+    }
+}
+
+function stopScreenShare() {
+    const btn = document.getElementById("start-screen-share-btn");
+    const btnText = document.getElementById("screen-share-btn-text");
+    const icon = document.getElementById("screen-share-icon");
+    const statusBadge = document.getElementById("screen-share-status");
+    const html5Player = document.getElementById("html5-player");
+
+    isScreenSharing = false;
+    if (screenShareStream) {
+        screenShareStream.getTracks().forEach(track => track.stop());
+        screenShareStream = null;
+    }
+
+    if (html5Player) {
+        html5Player.srcObject = null;
+    }
+
+    if (btn) {
+        btn.className = "btn btn-info px-4 py-2.5 rounded-pill shadow-sm fw-semibold d-flex align-items-center gap-2";
+    }
+    if (icon) icon.className = "bi bi-display-fill";
+    if (btnText) btnText.innerText = "Start Screen Share";
+    if (statusBadge) statusBadge.classList.add("d-none");
+
+    const titleEl = document.getElementById("active-video-title");
+    const statusTextEl = document.getElementById("stream-status-text");
+    if (titleEl) titleEl.innerText = "No Stream Active";
+    if (statusTextEl) statusTextEl.innerText = "Idle";
+    showToast("info", "Screen share stopped.");
 }
 
 // Floating Reactions Animation

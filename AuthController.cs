@@ -86,8 +86,14 @@ namespace MovieSync.Web.Controllers
             };
             var claimsIdentity = new ClaimsIdentity(claims, "Identity.Application");
 
-            // Sign in user to issue authentication cookie
-            await HttpContext.SignInAsync("Identity.Application", new ClaimsPrincipal(claimsIdentity));
+            var authProperties = new AuthenticationProperties
+            {
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30)
+            };
+
+            // Sign in user to issue persistent authentication cookie
+            await HttpContext.SignInAsync("Identity.Application", new ClaimsPrincipal(claimsIdentity), authProperties);
 
             return Ok(new { message = "Logged in successfully", uid, email });
         }
