@@ -188,11 +188,35 @@
                 </div>
             </div>
 
+            <!-- Watch Party Call Control Banner -->
+            <div class="glass-panel p-3 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-3" id="call-status-banner">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center justify-content-center text-white rounded-3 p-2" style="width: 42px; height: 42px; background-color: #073F78;">
+                        <i class="bi bi-camera-video-fill fs-5"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-white d-flex align-items-center gap-2" style="font-size: 0.95rem;">
+                            Live Watch Party Call
+                            <span id="call-active-badge" class="badge bg-secondary rounded-pill px-2 py-1 small fw-normal">0 active</span>
+                        </div>
+                        <div class="small text-muted" id="call-members-avatars">
+                            No active members in call yet
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button id="btn-toggle-join-call" onclick="toggleJoinCall()" class="btn btn-primary-gradient btn-sm px-3 py-2 fw-semibold d-flex align-items-center gap-2">
+                        <i class="bi bi-telephone-fill" id="call-join-icon"></i>
+                        <span id="call-join-text">Join Video Call</span>
+                    </button>
+                </div>
+            </div>
+
             <!-- WebRTC Live Video Calling Section -->
             <div id="webrtc-calling-section" class="glass-panel p-3 mb-3 d-none">
                 <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-                    <h6 class="fw-bold mb-0 text-gradient-primary d-flex align-items-center gap-2">
-                        <i class="bi bi-camera-video-fill"></i> Watch Party Call
+                    <h6 class="fw-bold mb-0 text-white d-flex align-items-center gap-2">
+                        <i class="bi bi-camera-video-fill text-danger"></i> Active Video Call
                     </h6>
                     <div class="d-flex gap-2" id="webrtc-controls">
                         <button id="webrtc-toggle-mic" class="btn btn-outline-success btn-sm rounded-pill px-3 d-flex align-items-center gap-1.5 active">
@@ -1660,12 +1684,48 @@ function triggerFloatingReaction(emoji) {
 }
 
 // WebRTC Watch Party Audio/Video Integration & Serverless P2P
+let isInCall = false;
+let lastParticipantsList = [];
+
 const rtcConfig = {
     iceServers: [
-        { urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302", "stun:stun2.l.google.com:19302", "stun:stun3.l.google.com:19302", "stun:stun4.l.google.com:19302"] },
-        { urls: ["stun:global.stun.twilio.com:3478"] }
+        { urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302", "stun:stun2.l.google.com:19302", "stun:stun3.l.google.com:19302"] }
     ]
 };
+
+async function toggleJoinCall() {
+    const section = document.getElementById("webrtc-calling-section");
+    const btn = document.getElementById("btn-toggle-join-call");
+    const icon = document.getElementById("call-join-icon");
+    const text = document.getElementById("call-join-text");
+
+    if (!isInCall) {
+        isInCall = true;
+        section.classList.remove("d-none");
+        btn.className = "btn btn-danger btn-sm px-3 py-2 fw-semibold d-flex align-items-center gap-2";
+        icon.className = "bi bi-telephone-x-fill";
+        text.innerText = "Leave Call";
+
+        await startLocalStream();
+        if (currentRoom) {
+            connection.invoke("UpdateCallStatus", currentRoom, true, isMicMuted, isCameraOff).catch(e => console.log(e));
+        }
+        syncWebRtcPeers(lastParticipantsList);
+        showToast("success", "Joined watch party video call 📹");
+    } else {
+        isInCall = false;
+        cleanupWebRtc();
+        section.classList.add("d-none");
+        btn.className = "btn btn-primary-gradient btn-sm px-3 py-2 fw-semibold d-flex align-items-center gap-2";
+        icon.className = "bi bi-telephone-fill";
+        text.innerText = "Join Video Call";
+
+        if (currentRoom) {
+            connection.invoke("UpdateCallStatus", currentRoom, false, true, true).catch(e => console.log(e));
+        }
+        showToast("info", "Left video call");
+    }
+}
 
 function createSyntheticFallbackStream() {
     try {
@@ -1720,15 +1780,16 @@ async function startLocalStream() {
 
 function getOrCreatePeerConnection(targetConnectionId, targetUsername) {
     if (peerConnections[targetConnectionId]) {
-        return peerConnections[targetConnectionId];
+        return peerConnections[targetConnectionId].pc;
     }
 
     const pc = new RTCPeerConnection(rtcConfig);
-    peerConnections[targetConnectionId] = pc;
+    const peerObj = { pc: pc, pendingCandidates: [] };
+    peerConnections[targetConnectionId] = peerObj;
 
     if (localStream) {
         localStream.getTracks().forEach(track => {
-            pc.addTrack(track, localStream);
+            try { pc.addTrack(track, localStream); } catch (e) {}
         });
     }
 
@@ -1746,7 +1807,6 @@ function getOrCreatePeerConnection(targetConnectionId, targetUsername) {
     };
 
     pc.oniceconnectionstatechange = () => {
-        console.log(`ICE Connection state with ${targetConnectionId}: ${pc.iceConnectionState}`);
         if (pc.iceConnectionState === "disconnected" || pc.iceConnectionState === "failed" || pc.iceConnectionState === "closed") {
             removeRemoteVideo(targetConnectionId);
         }
@@ -1755,9 +1815,26 @@ function getOrCreatePeerConnection(targetConnectionId, targetUsername) {
     return pc;
 }
 
+async function processPendingIceCandidates(targetConnectionId) {
+    const peerObj = peerConnections[targetConnectionId];
+    if (peerObj && peerObj.pendingCandidates && peerObj.pendingCandidates.length > 0) {
+        const candidates = [...peerObj.pendingCandidates];
+        peerObj.pendingCandidates = [];
+        for (const cand of candidates) {
+            try {
+                await peerObj.pc.addIceCandidate(new RTCIceCandidate(cand));
+            } catch (err) {
+                console.warn("Error adding queued ICE candidate:", err);
+            }
+        }
+    }
+}
+
 async function initiateCallWithPeer(targetConnectionId, targetUsername) {
     try {
         const pc = getOrCreatePeerConnection(targetConnectionId, targetUsername);
+        if (pc.signalingState !== "stable") return;
+
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
         if (currentRoom) {
@@ -1771,12 +1848,29 @@ async function initiateCallWithPeer(targetConnectionId, targetUsername) {
 async function handleWebRtcOffer(senderConnectionId, offerData) {
     try {
         const pc = getOrCreatePeerConnection(senderConnectionId, "Peer");
+
+        if (pc.signalingState !== "stable") {
+            console.warn("Resetting colliding peer connection during offer handling");
+            try { pc.close(); } catch (e) {}
+            delete peerConnections[senderConnectionId];
+            const newPc = getOrCreatePeerConnection(senderConnectionId, "Peer");
+            await newPc.setRemoteDescription(new RTCSessionDescription(offerData));
+            const answer = await newPc.createAnswer();
+            await newPc.setLocalDescription(answer);
+            if (currentRoom) {
+                await connection.invoke("SendWebRtcSignal", currentRoom, senderConnectionId, "answer", JSON.stringify(answer));
+            }
+            await processPendingIceCandidates(senderConnectionId);
+            return;
+        }
+
         await pc.setRemoteDescription(new RTCSessionDescription(offerData));
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
         if (currentRoom) {
             await connection.invoke("SendWebRtcSignal", currentRoom, senderConnectionId, "answer", JSON.stringify(answer));
         }
+        await processPendingIceCandidates(senderConnectionId);
     } catch (err) {
         console.error("Error handling WebRTC offer:", err);
     }
@@ -1784,9 +1878,14 @@ async function handleWebRtcOffer(senderConnectionId, offerData) {
 
 async function handleWebRtcAnswer(senderConnectionId, answerData) {
     try {
-        const pc = peerConnections[senderConnectionId];
-        if (pc) {
-            await pc.setRemoteDescription(new RTCSessionDescription(answerData));
+        const peerObj = peerConnections[senderConnectionId];
+        if (peerObj && peerObj.pc) {
+            if (peerObj.pc.signalingState === "have-local-offer") {
+                await peerObj.pc.setRemoteDescription(new RTCSessionDescription(answerData));
+                await processPendingIceCandidates(senderConnectionId);
+            } else {
+                console.warn(`Ignoring answer received in state: ${peerObj.pc.signalingState}`);
+            }
         }
     } catch (err) {
         console.error("Error handling WebRTC answer:", err);
@@ -1795,9 +1894,13 @@ async function handleWebRtcAnswer(senderConnectionId, answerData) {
 
 async function handleWebRtcCandidate(senderConnectionId, candidateData) {
     try {
-        const pc = peerConnections[senderConnectionId];
-        if (pc) {
-            await pc.addIceCandidate(new RTCIceCandidate(candidateData));
+        const peerObj = peerConnections[senderConnectionId];
+        if (peerObj && peerObj.pc) {
+            if (peerObj.pc.remoteDescription && peerObj.pc.remoteDescription.type) {
+                await peerObj.pc.addIceCandidate(new RTCIceCandidate(candidateData));
+            } else {
+                peerObj.pendingCandidates.push(candidateData);
+            }
         }
     } catch (err) {
         console.error("Error adding ICE candidate:", err);
@@ -1805,19 +1908,43 @@ async function handleWebRtcCandidate(senderConnectionId, candidateData) {
 }
 
 function syncWebRtcPeers(participants) {
-    if (!participants || !connection || !connection.connectionId) return;
+    if (!participants) return;
+    lastParticipantsList = participants;
 
-    participants.forEach(p => {
-        if (p.connectionId && p.connectionId !== connection.connectionId) {
-            if (!peerConnections[p.connectionId]) {
-                initiateCallWithPeer(p.connectionId, p.username);
+    // Filter active call members
+    const callMembers = participants.filter(p => p.isInCall || p.IsInCall);
+    const activeBadge = document.getElementById("call-active-badge");
+    if (activeBadge) activeBadge.innerText = `${callMembers.length} active`;
+
+    const avatarsEl = document.getElementById("call-members-avatars");
+    if (avatarsEl) {
+        if (callMembers.length === 0) {
+            avatarsEl.innerText = "No active members in call yet. Click Join Video Call!";
+        } else {
+            const names = callMembers.map(m => m.username || m.Username).join(", ");
+            avatarsEl.innerText = `In call: ${names}`;
+        }
+    }
+
+    if (!isInCall || !connection || !connection.connectionId) return;
+
+    // Deterministic single-initiator rule: Lower connectionId creates offer
+    callMembers.forEach(p => {
+        const peerConnId = p.connectionId || p.ConnectionId;
+        if (peerConnId && peerConnId !== connection.connectionId) {
+            if (!peerConnections[peerConnId]) {
+                if (connection.connectionId < peerConnId) {
+                    initiateCallWithPeer(peerConnId, p.username || p.Username);
+                } else {
+                    getOrCreatePeerConnection(peerConnId, p.username || p.Username);
+                }
             }
         }
     });
 
-    const currentIds = participants.map(p => p.connectionId);
+    const activeCallConnIds = callMembers.map(p => p.connectionId || p.ConnectionId);
     Object.keys(peerConnections).forEach(id => {
-        if (!currentIds.includes(id)) {
+        if (!activeCallConnIds.includes(id)) {
             removeRemoteVideo(id);
         }
     });
@@ -1855,7 +1982,7 @@ function removeRemoteVideo(peerId) {
     const box = document.getElementById(`peer-box-${peerId}`);
     if (box) box.remove();
     if (peerConnections[peerId]) {
-        try { peerConnections[peerId].close(); } catch (e) {}
+        try { peerConnections[peerId].pc.close(); } catch (e) {}
         delete peerConnections[peerId];
     }
 }
@@ -1923,7 +2050,7 @@ function cleanupWebRtc() {
         localStream = null;
     }
     Object.keys(peerConnections).forEach(id => {
-        try { peerConnections[id].close(); } catch (e) {}
+        try { peerConnections[id].pc.close(); } catch (e) {}
         delete peerConnections[id];
     });
     document.querySelectorAll(".remote-video-box").forEach(el => el.remove());

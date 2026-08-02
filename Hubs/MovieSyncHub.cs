@@ -237,6 +237,16 @@ namespace MovieSync.Web.Hubs
             await Clients.Client(targetConnectionId).SendAsync("ReceiveWebRtcSignal", Context.ConnectionId, signalType, signalData);
         }
 
+        public async Task UpdateCallStatus(string roomId, bool isInCall, bool isMuted, bool isCameraOff)
+        {
+            _roomStateManager.UpdateCallState(roomId, Context.ConnectionId, isInCall, isMuted, isCameraOff);
+            var room = _roomStateManager.GetRoom(roomId);
+            if (room != null)
+            {
+                await Clients.Group(roomId).SendAsync("ReceiveRoomState", room);
+            }
+        }
+
         public async Task UpdateMediaState(string roomId, bool isMuted, bool isCameraOff)
         {
             var room = _roomStateManager.GetRoom(roomId);

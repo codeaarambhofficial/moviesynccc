@@ -23,6 +23,7 @@ namespace MovieSync.Web.Services
         public string ConnectionId { get; set; } = string.Empty;
         public string Username { get; set; } = string.Empty;
         public string AvatarSeed { get; set; } = string.Empty;
+        public bool IsInCall { get; set; }
         public bool IsMuted { get; set; }
         public bool IsCameraOff { get; set; }
     }
@@ -243,6 +244,22 @@ namespace MovieSync.Web.Services
                 }
             }
             return null;
+        }
+
+        public void UpdateCallState(string roomId, string connectionId, bool isInCall, bool isMuted, bool isCameraOff)
+        {
+            if (!_rooms.TryGetValue(roomId, out var room)) return;
+
+            lock (room)
+            {
+                var participant = room.Participants.FirstOrDefault(p => p.ConnectionId == connectionId);
+                if (participant != null)
+                {
+                    participant.IsInCall = isInCall;
+                    participant.IsMuted = isMuted;
+                    participant.IsCameraOff = isCameraOff;
+                }
+            }
         }
     }
 }
