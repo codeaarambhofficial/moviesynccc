@@ -1,5 +1,5 @@
 /* ==========================================
-   MovieSync Premium Multi-Theme & WhatsApp System
+   MovieSync Premium Multi-Theme & Chat System
    ========================================== */
 
 :root, [data-theme="dark"] {
@@ -37,38 +37,38 @@
 }
 
 [data-theme="light"] {
-    --bg-color: #f0f2f5;
-    --text-color: #111b21;
-    --text-muted: #54656f;
+    --bg-color: #f8fafc;
+    --text-color: #0f172a;
+    --text-muted: #64748b;
     
-    --primary-color: #008069;
-    --primary-gradient: linear-gradient(135deg, #008069 0%, #25d366 100%);
-    --accent-color: #128c7e;
+    --primary-color: #2563eb;
+    --primary-gradient: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+    --accent-color: #3b82f6;
     --success-color: #10b981;
-    --error-color: #ea580c;
+    --error-color: #ef4444;
     
     --card-bg: #ffffff;
-    --card-border: #e9edef;
-    --card-glow: rgba(0, 128, 105, 0.08);
+    --card-border: #e2e8f0;
+    --card-glow: rgba(37, 99, 235, 0.08);
     
     --nav-bg: #ffffff;
-    --input-bg: #ffffff;
-    --input-border: #d1d7db;
+    --input-bg: #f1f5f9;
+    --input-border: #cbd5e1;
     
-    --chat-bg: #efeae2;
-    --chat-self-bg: #d9fdd3;
-    --chat-self-text: #111b21;
+    --chat-bg: #f1f5f9;
+    --chat-self-bg: #3b82f6;
+    --chat-self-text: #ffffff;
     --chat-other-bg: #ffffff;
-    --chat-other-text: #111b21;
+    --chat-other-text: #0f172a;
     --chat-system-bg: #ffffff;
-    --chat-system-text: #54656f;
-    --chat-time-color: #667781;
-    --chat-sender-color: #008069;
+    --chat-system-text: #64748b;
+    --chat-time-color: #64748b;
+    --chat-sender-color: #2563eb;
     --chat-input-bg: #ffffff;
-    --chat-input-border: #d1d7db;
+    --chat-input-border: #cbd5e1;
 }
 
-[data-theme="whatsapp-dark"] {
+[data-theme="mint-dark"] {
     --bg-color: #0b141a;
     --text-color: #e9edef;
     --text-muted: #8696a0;
@@ -407,7 +407,7 @@ html, body {
 }
 
 /* ==========================================
-   WhatsApp Style Chat Layout
+   Modern Real-time Chat Layout
    ========================================== */
 .chat-container {
     height: 100%;
@@ -434,21 +434,21 @@ html, body {
     gap: 8px;
 }
 
-.whatsapp-msg-row {
+.chat-msg-row {
     display: flex;
     margin-bottom: 4px;
     width: 100%;
 }
 
-.whatsapp-msg-row.self {
+.chat-msg-row.self {
     justify-content: flex-end;
 }
 
-.whatsapp-msg-row.other {
+.chat-msg-row.other {
     justify-content: flex-start;
 }
 
-.whatsapp-bubble {
+.chat-bubble {
     max-width: 82%;
     min-width: 110px;
     padding: 8px 12px 6px 12px;
@@ -460,20 +460,20 @@ html, body {
     transition: background 0.2s ease, color 0.2s ease;
 }
 
-.whatsapp-msg-row.self .whatsapp-bubble {
+.chat-msg-row.self .chat-bubble {
     background: var(--chat-self-bg);
     color: var(--chat-self-text);
     border-radius: 12px 12px 2px 12px;
 }
 
-.whatsapp-msg-row.other .whatsapp-bubble {
+.chat-msg-row.other .chat-bubble {
     background: var(--chat-other-bg);
     color: var(--chat-other-text);
     border-radius: 12px 12px 12px 2px;
     border: 1px solid var(--card-border);
 }
 
-.whatsapp-sender-name {
+.chat-sender-name {
     font-size: 0.78rem;
     font-weight: 700;
     color: var(--chat-sender-color);
@@ -481,13 +481,13 @@ html, body {
     display: block;
 }
 
-.whatsapp-msg-text {
+.chat-msg-text {
     font-size: 0.92rem;
     display: block;
     white-space: pre-wrap;
 }
 
-.whatsapp-msg-meta {
+.chat-msg-meta {
     display: flex;
     align-items: center;
     justify-content: flex-end;
@@ -500,8 +500,8 @@ html, body {
     user-select: none;
 }
 
-.whatsapp-msg-meta .ticks {
-    color: #53bdeb; /* Blue checkmarks */
+.chat-msg-meta .ticks {
+    color: #38bdf8;
     font-size: 0.85rem;
 }
 

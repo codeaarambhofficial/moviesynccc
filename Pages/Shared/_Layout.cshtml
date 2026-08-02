@@ -67,14 +67,14 @@
                                     </li>
                                     <li>
                                         <button class="dropdown-item d-flex align-items-center gap-2 py-2 px-3 cursor-pointer text-light" onclick="setAppTheme('light')">
-                                            <i class="bi bi-whatsapp text-success"></i>
-                                            <span class="small fw-medium">WhatsApp Light</span>
+                                            <i class="bi bi-sun-fill text-warning"></i>
+                                            <span class="small fw-medium">Clean Light</span>
                                         </button>
                                     </li>
                                     <li>
-                                        <button class="dropdown-item d-flex align-items-center gap-2 py-2 px-3 cursor-pointer text-light" onclick="setAppTheme('whatsapp-dark')">
-                                            <i class="bi bi-whatsapp text-info"></i>
-                                            <span class="small fw-medium">WhatsApp Dark</span>
+                                        <button class="dropdown-item d-flex align-items-center gap-2 py-2 px-3 cursor-pointer text-light" onclick="setAppTheme('mint-dark')">
+                                            <i class="bi bi-droplet-fill text-info"></i>
+                                            <span class="small fw-medium">Cyber Teal</span>
                                         </button>
                                     </li>
                                     <li>
@@ -104,14 +104,14 @@
                                     </li>
                                     <li>
                                         <button class="dropdown-item d-flex align-items-center gap-2 py-2 px-3 cursor-pointer text-light" onclick="setAppTheme('light')">
-                                            <i class="bi bi-whatsapp text-success"></i>
-                                            <span class="small fw-medium">WhatsApp Light</span>
+                                            <i class="bi bi-sun-fill text-warning"></i>
+                                            <span class="small fw-medium">Clean Light</span>
                                         </button>
                                     </li>
                                     <li>
-                                        <button class="dropdown-item d-flex align-items-center gap-2 py-2 px-3 cursor-pointer text-light" onclick="setAppTheme('whatsapp-dark')">
-                                            <i class="bi bi-whatsapp text-info"></i>
-                                            <span class="small fw-medium">WhatsApp Dark</span>
+                                        <button class="dropdown-item d-flex align-items-center gap-2 py-2 px-3 cursor-pointer text-light" onclick="setAppTheme('mint-dark')">
+                                            <i class="bi bi-droplet-fill text-info"></i>
+                                            <span class="small fw-medium">Cyber Teal</span>
                                         </button>
                                     </li>
                                     <li>
@@ -194,8 +194,8 @@
             const currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
             let nextTheme = "dark";
             if (currentTheme === "dark") nextTheme = "light";
-            else if (currentTheme === "light") nextTheme = "whatsapp-dark";
-            else if (currentTheme === "whatsapp-dark") nextTheme = "emerald";
+            else if (currentTheme === "light") nextTheme = "mint-dark";
+            else if (currentTheme === "mint-dark") nextTheme = "emerald";
             else nextTheme = "dark";
             setAppTheme(nextTheme);
         }
@@ -205,15 +205,15 @@
             const labels = document.querySelectorAll("#theme-label");
             
             labels.forEach(lbl => {
-                if (theme === "light") lbl.innerText = "WhatsApp Light";
-                else if (theme === "whatsapp-dark") lbl.innerText = "WhatsApp Dark";
+                if (theme === "light") lbl.innerText = "Clean Light";
+                else if (theme === "mint-dark") lbl.innerText = "Cyber Teal";
                 else if (theme === "emerald") lbl.innerText = "Emerald Glow";
                 else lbl.innerText = "Midnight Dark";
             });
 
             icons.forEach(icon => {
-                if (theme === "light") icon.className = "bi bi-whatsapp text-success";
-                else if (theme === "whatsapp-dark") icon.className = "bi bi-whatsapp text-info";
+                if (theme === "light") icon.className = "bi bi-sun-fill text-warning";
+                else if (theme === "mint-dark") icon.className = "bi bi-droplet-fill text-info";
                 else if (theme === "emerald") icon.className = "bi bi-gem text-success";
                 else icon.className = "bi bi-moon-stars-fill text-warning";
             });

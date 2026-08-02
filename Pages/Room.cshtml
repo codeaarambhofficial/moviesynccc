@@ -685,6 +685,16 @@ function loadLocalFileStream(blobUrl, fileName, fileSize = 0) {
         connection.invoke("SelectLocalMedia", currentRoom, fileName, fileSize).catch(err => console.log("SelectLocalMedia error:", err));
         if (isHost) {
             connection.invoke("ChangeVideo", currentRoom, "local://" + fileName, fileName, 0.0);
+        } else {
+            // Non-host: sync immediately to estimated host position and play state
+            const estTime = getEstimatedHostTime();
+            if (estTime > 0) {
+                html5Player.currentTime = estTime;
+            }
+            const hostIsPlaying = lastReceivedState?.isPlaying !== undefined ? lastReceivedState.isPlaying : lastReceivedState?.IsPlaying;
+            if (hostIsPlaying) {
+                html5Player.play().catch(e => console.log("Autoplay caught on loadLocalFileStream:", e));
+            }
         }
     }
     showToast("success", `Loaded local video: ${fileName}`);
@@ -725,12 +735,13 @@ function loadVideoStream(url, title = "") {
 
 // SignalR Server Handlers
 connection.on("ReceiveRoomState", (state) => {
-    isHost = state.isHost;
-    isLocked = state.isLocked;
-    activeVideoUrl = state.videoUrl || state.VideoUrl;
-    activeVideoTitle = state.videoTitle || state.VideoTitle || "MovieSync Stream";
+    const hostConnId = state.hostConnectionId || state.HostConnectionId;
+    isHost = (hostConnId === connection.connectionId);
+    isLocked = state.isLocked || state.IsLocked || false;
+    activeVideoUrl = state.currentVideoUrl || state.CurrentVideoUrl || state.videoUrl || state.VideoUrl;
+    activeVideoTitle = state.currentVideoTitle || state.CurrentVideoTitle || state.videoTitle || state.VideoTitle || "MovieSync Stream";
     
-    document.getElementById("current-host-display").innerText = state.hostName || state.HostName || "Host";
+    document.getElementById("current-host-display").innerText = state.hostUsername || state.HostUsername || "Host";
 
     // Update Lock UI badges
     const lockContainer = document.getElementById("lock-control-container");
@@ -759,14 +770,15 @@ connection.on("ReceiveRoomState", (state) => {
     }
 
     lastReceivedState = state;
+    const initialTime = state.currentTime || state.CurrentTime || 0;
     if (activeVideoUrl) {
-        handleVideoSwitch(activeVideoUrl, activeVideoTitle, false, state.currentTime || state.CurrentTime || 0);
+        handleVideoSwitch(activeVideoUrl, activeVideoTitle, false, initialTime);
     } else {
-        handleVideoSwitch("local://Movie", activeVideoTitle || "Local Movie", false, 0);
+        handleVideoSwitch("local://Movie", activeVideoTitle || "Local Movie", false, initialTime);
     }
 
     updateParticipantsList(state.participants || state.Participants);
-    updateHistoryAndFavoritesLists(state.history || state.History, state.favorites || state.Favorites);
+    updateHistoryAndFavoritesLists(state.watchHistory || state.WatchHistory || state.history, state.favorites || state.Favorites);
     toggleLoading(false);
 });
 
@@ -1104,25 +1116,45 @@ function getEstimatedHostTime() {
 function checkDriftAndStateSync() {
     if (!currentRoom) return;
     const playerTime = getPlayerCurrentTime();
+    const isPlayingLocally = isPlayerActuallyPlaying();
     
-    if (isHost && isPlayerActuallyPlaying()) {
-        const rate = (html5Player && html5Player.style.display !== "none") ? html5Player.playbackRate : 1.0;
-        connection.invoke("SyncPosition", currentRoom, playerTime, rate).catch(err => console.log("SyncPosition error:", err));
+    if (isHost) {
+        if (isPlayingLocally) {
+            const rate = (html5Player && html5Player.style.display !== "none") ? html5Player.playbackRate : 1.0;
+            connection.invoke("SyncPosition", currentRoom, playerTime, rate).catch(err => console.log("SyncPosition error:", err));
+        }
     } else if (!isHost && lastReceivedState) {
+        const hostIsPlaying = lastReceivedState.isPlaying !== undefined ? lastReceivedState.isPlaying : lastReceivedState.IsPlaying;
         const hostTime = getEstimatedHostTime();
-        if (playerTime !== null) {
-            const difference = hostTime - playerTime;
-            const absDiff = Math.abs(difference);
 
-            if (absDiff < 0.2) {
-                if (html5Player && html5Player.style.display !== "none") html5Player.playbackRate = 1.0;
-            } else if (absDiff >= 0.2 && absDiff < 1.0) {
-                if (html5Player && html5Player.style.display !== "none") {
-                    html5Player.playbackRate = difference > 0 ? 1.02 : 0.98;
+        const isMediaActive = (html5Player && html5Player.style.display !== "none" && activeBlobUrl) ||
+                              (ytContainer && ytContainer.style.display !== "none" && isPlayerReady);
+
+        if (isMediaActive) {
+            // Play/Pause state sync
+            if (hostIsPlaying && !isPlayingLocally) {
+                startPlayerPlayback().catch(err => console.log("Play sync error:", err));
+            } else if (!hostIsPlaying && isPlayingLocally) {
+                pausePlayerPlayback();
+            }
+
+            // Seek / Drift sync
+            if (playerTime !== null) {
+                const difference = hostTime - playerTime;
+                const absDiff = Math.abs(difference);
+
+                if (absDiff >= 1.0) {
+                    seekPlayerTo(hostTime);
+                    if (html5Player && html5Player.style.display !== "none") html5Player.playbackRate = 1.0;
+                } else if (absDiff >= 0.15) {
+                    if (html5Player && html5Player.style.display !== "none") {
+                        html5Player.playbackRate = difference > 0 ? 1.03 : 0.97;
+                    }
+                } else {
+                    if (html5Player && html5Player.style.display !== "none") {
+                        html5Player.playbackRate = 1.0;
+                    }
                 }
-            } else if (absDiff >= 1.0) {
-                seekPlayerTo(hostTime);
-                if (html5Player && html5Player.style.display !== "none") html5Player.playbackRate = 1.0;
             }
         }
     }
@@ -1196,18 +1228,18 @@ function appendChatMessage(username, message, timestamp) {
         if (userBadge) currentUsername = userBadge.innerText.trim();
     } catch(e) {}
 
-    const isSelf = username && currentUsername && (username.toLowerCase() === currentUsername.toLowerCase() || username.toLowerCase().split('@@')[0] === currentUsername.toLowerCase());
+    const isSelf = username && currentUsername && (username.toLowerCase() === currentUsername.toLowerCase() || username.toLowerCase().split(String.fromCharCode(64))[0] === currentUsername.toLowerCase());
 
     const timeStr = timestamp ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
     const rowDiv = document.createElement("div");
-    rowDiv.className = `whatsapp-msg-row ${isSelf ? 'self' : 'other'}`;
+    rowDiv.className = `chat-msg-row ${isSelf ? 'self' : 'other'}`;
     
     rowDiv.innerHTML = `
-        <div class="whatsapp-bubble">
-            ${!isSelf ? `<span class="whatsapp-sender-name">${escapeHtml(username)}</span>` : ''}
-            <span class="whatsapp-msg-text">${escapeHtml(message)}</span>
-            <span class="whatsapp-msg-meta">
+        <div class="chat-bubble">
+            ${!isSelf ? `<span class="chat-sender-name">${escapeHtml(username)}</span>` : ''}
+            <span class="chat-msg-text">${escapeHtml(message)}</span>
+            <span class="chat-msg-meta">
                 ${timeStr}
                 ${isSelf ? `<i class="bi bi-check2-all ticks"></i>` : ''}
             </span>
