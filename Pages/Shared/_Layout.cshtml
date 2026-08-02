@@ -53,17 +53,75 @@
                                 <i class="bi bi-box-arrow-right"></i> Logout
                             </button>
                             
-                            <button class="theme-toggle-btn" onclick="toggleDarkMode()" title="Toggle Theme">
-                                <i class="bi bi-moon-stars" id="theme-icon"></i>
-                            </button>
+                            <div class="dropdown">
+                                <button class="btn btn-glass btn-sm rounded-pill dropdown-toggle d-flex align-items-center gap-2 px-3 py-1.5" type="button" id="themeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-palette-fill" id="theme-icon"></i>
+                                    <span class="d-none d-md-inline small fw-semibold" id="theme-label">Theme</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end glass-panel shadow-lg border border-light border-opacity-10 py-2" aria-labelledby="themeDropdown">
+                                    <li>
+                                        <button class="dropdown-item d-flex align-items-center gap-2 py-2 px-3 cursor-pointer text-light" onclick="setAppTheme('dark')">
+                                            <i class="bi bi-moon-stars-fill text-warning"></i>
+                                            <span class="small fw-medium">Midnight Dark</span>
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button class="dropdown-item d-flex align-items-center gap-2 py-2 px-3 cursor-pointer text-light" onclick="setAppTheme('light')">
+                                            <i class="bi bi-whatsapp text-success"></i>
+                                            <span class="small fw-medium">WhatsApp Light</span>
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button class="dropdown-item d-flex align-items-center gap-2 py-2 px-3 cursor-pointer text-light" onclick="setAppTheme('whatsapp-dark')">
+                                            <i class="bi bi-whatsapp text-info"></i>
+                                            <span class="small fw-medium">WhatsApp Dark</span>
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button class="dropdown-item d-flex align-items-center gap-2 py-2 px-3 cursor-pointer text-light" onclick="setAppTheme('emerald')">
+                                            <i class="bi bi-gem text-emerald"></i>
+                                            <span class="small fw-medium">Emerald Glow</span>
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     }
                     else
                     {
                         <div class="d-flex align-items-center ms-auto">
-                            <button class="theme-toggle-btn" onclick="toggleDarkMode()" title="Toggle Theme">
-                                <i class="bi bi-moon-stars" id="theme-icon"></i>
-                            </button>
+                            <div class="dropdown">
+                                <button class="btn btn-glass btn-sm rounded-pill dropdown-toggle d-flex align-items-center gap-2 px-3 py-1.5" type="button" id="themeDropdownGuest" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-palette-fill" id="theme-icon"></i>
+                                    <span class="d-none d-md-inline small fw-semibold" id="theme-label">Theme</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end glass-panel shadow-lg border border-light border-opacity-10 py-2" aria-labelledby="themeDropdownGuest">
+                                    <li>
+                                        <button class="dropdown-item d-flex align-items-center gap-2 py-2 px-3 cursor-pointer text-light" onclick="setAppTheme('dark')">
+                                            <i class="bi bi-moon-stars-fill text-warning"></i>
+                                            <span class="small fw-medium">Midnight Dark</span>
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button class="dropdown-item d-flex align-items-center gap-2 py-2 px-3 cursor-pointer text-light" onclick="setAppTheme('light')">
+                                            <i class="bi bi-whatsapp text-success"></i>
+                                            <span class="small fw-medium">WhatsApp Light</span>
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button class="dropdown-item d-flex align-items-center gap-2 py-2 px-3 cursor-pointer text-light" onclick="setAppTheme('whatsapp-dark')">
+                                            <i class="bi bi-whatsapp text-info"></i>
+                                            <span class="small fw-medium">WhatsApp Dark</span>
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button class="dropdown-item d-flex align-items-center gap-2 py-2 px-3 cursor-pointer text-light" onclick="setAppTheme('emerald')">
+                                            <i class="bi bi-gem text-emerald"></i>
+                                            <span class="small fw-medium">Emerald Glow</span>
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     }
                 </div>
@@ -126,29 +184,46 @@
             }
         }
 
-        function toggleDarkMode() {
-            const currentTheme = document.documentElement.getAttribute("data-theme");
-            const newTheme = currentTheme === "dark" ? "light" : "dark";
-            document.documentElement.setAttribute("data-theme", newTheme);
-            localStorage.setItem("theme", newTheme);
-            updateThemeIcon(newTheme);
+        function setAppTheme(theme) {
+            document.documentElement.setAttribute("data-theme", theme);
+            localStorage.setItem("theme", theme);
+            updateThemeLabel(theme);
         }
 
-        function updateThemeIcon(theme) {
-            const icon = document.getElementById("theme-icon");
-            if (!icon) return;
-            if (theme === "dark") {
-                icon.className = "bi bi-sun-fill text-warning";
-            } else {
-                icon.className = "bi bi-moon-stars-fill text-muted";
-            }
+        function toggleDarkMode() {
+            const currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
+            let nextTheme = "dark";
+            if (currentTheme === "dark") nextTheme = "light";
+            else if (currentTheme === "light") nextTheme = "whatsapp-dark";
+            else if (currentTheme === "whatsapp-dark") nextTheme = "emerald";
+            else nextTheme = "dark";
+            setAppTheme(nextTheme);
+        }
+
+        function updateThemeLabel(theme) {
+            const icons = document.querySelectorAll("#theme-icon");
+            const labels = document.querySelectorAll("#theme-label");
+            
+            labels.forEach(lbl => {
+                if (theme === "light") lbl.innerText = "WhatsApp Light";
+                else if (theme === "whatsapp-dark") lbl.innerText = "WhatsApp Dark";
+                else if (theme === "emerald") lbl.innerText = "Emerald Glow";
+                else lbl.innerText = "Midnight Dark";
+            });
+
+            icons.forEach(icon => {
+                if (theme === "light") icon.className = "bi bi-whatsapp text-success";
+                else if (theme === "whatsapp-dark") icon.className = "bi bi-whatsapp text-info";
+                else if (theme === "emerald") icon.className = "bi bi-gem text-success";
+                else icon.className = "bi bi-moon-stars-fill text-warning";
+            });
         }
 
         const savedTheme = localStorage.getItem("theme") || "dark";
         document.documentElement.setAttribute("data-theme", savedTheme);
         
         window.addEventListener('DOMContentLoaded', () => {
-            updateThemeIcon(savedTheme);
+            updateThemeLabel(savedTheme);
         });
     </script>
 

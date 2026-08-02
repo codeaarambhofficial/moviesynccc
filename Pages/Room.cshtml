@@ -848,29 +848,75 @@ function extractYtId(url) {
     return (match && match[2].length === 11) ? match[2] : null;
 }
 
-function handleVideoSwitch(url, title, notifyServer = false, startTime = 0) {
-    const ytId = extractYtId(url);
-    
+let activeBlobUrl = null;
+
+function resetAllPlayers() {
+    // 1. Pause HTML5 Video Player and clear its source
+    if (html5Player) {
+        try {
+            html5Player.pause();
+            html5Player.removeAttribute("src");
+            html5Player.load();
+        } catch (e) {
+            console.warn("HTML5 player reset error:", e);
+        }
+    }
+
+    // 2. Revoke previous local object URL if present
+    if (activeBlobUrl) {
+        try {
+            URL.revokeObjectURL(activeBlobUrl);
+        } catch (e) {
+            console.warn("Revoke blob URL error:", e);
+        }
+        activeBlobUrl = null;
+    }
+
+    // 3. Stop YouTube player if playing
+    if (isPlayerReady && ytPlayer && typeof ytPlayer.stopVideo === 'function') {
+        try {
+            ytPlayer.stopVideo();
+        } catch (e) {
+            console.warn("YouTube player stop error:", e);
+        }
+    }
+
+    // 4. Destroy active HLS instance if any
     if (hlsInstance) {
-        hlsInstance.destroy();
+        try {
+            hlsInstance.destroy();
+        } catch (e) {
+            console.warn("HLS destroy error:", e);
+        }
         hlsInstance = null;
     }
 
+    // 5. Reset Iframe player
+    if (iframePlayer) {
+        iframePlayer.src = "about:blank";
+    }
+
+    // 6. Hide player containers
+    if (ytContainer) ytContainer.style.display = "none";
+    if (html5Player) html5Player.style.display = "none";
+    if (iframePlayer) iframePlayer.style.display = "none";
+}
+
+function handleVideoSwitch(url, title, notifyServer = false, startTime = 0) {
+    // Completely remove and stop previous playing video/audio
+    resetAllPlayers();
+
+    const ytId = extractYtId(url);
+
     if (ytId) {
         ytContainer.style.display = "block";
-        html5Player.style.display = "none";
-        iframePlayer.style.display = "none";
-
         if (isPlayerReady && ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
             ytPlayer.loadVideoById({ 'videoId': ytId, 'startSeconds': startTime });
         } else {
             pendingVideo = { url: url, title: title };
         }
     } else if (url.match(/\.m3u8($|\?)/i)) {
-        ytContainer.style.display = "none";
         html5Player.style.display = "block";
-        iframePlayer.style.display = "none";
-
         if (Hls.isSupported()) {
             hlsInstance = new Hls();
             hlsInstance.loadSource(url);
@@ -883,20 +929,20 @@ function handleVideoSwitch(url, title, notifyServer = false, startTime = 0) {
             html5Player.currentTime = startTime;
         }
     } else if (url.startsWith("blob:") || url.match(/\.(mp4|mkv|webm|avi|mov|ogg)(\?.*)?$/i)) {
-        ytContainer.style.display = "none";
         html5Player.style.display = "block";
-        iframePlayer.style.display = "none";
-
-        if (html5Player.src !== url) {
-            html5Player.src = url;
+        if (url.startsWith("blob:")) {
+            activeBlobUrl = url;
         }
+        html5Player.src = url;
         html5Player.currentTime = startTime;
+        html5Player.play().catch(e => console.log("Autoplay caught:", e));
     } else {
-        ytContainer.style.display = "none";
-        html5Player.style.display = "none";
         iframePlayer.style.display = "block";
         iframePlayer.src = url;
     }
+
+    const titleEl = document.getElementById("active-video-title");
+    if (titleEl) titleEl.innerText = title || "MovieSync Stream";
 
     toggleLoading(false);
 }
@@ -1028,18 +1074,31 @@ function appendChatMessage(username, message, timestamp) {
     const placeholder = document.getElementById("empty-chat-placeholder");
     if (placeholder) placeholder.remove();
 
+    // Check if current user is the author
+    let currentUsername = "";
+    try {
+        const userBadge = document.querySelector(".user-badge span");
+        if (userBadge) currentUsername = userBadge.innerText.trim();
+    } catch(e) {}
+
+    const isSelf = username && currentUsername && (username.toLowerCase() === currentUsername.toLowerCase() || username.toLowerCase().split('@')[0] === currentUsername.toLowerCase());
+
     const timeStr = timestamp ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
-    const msgDiv = document.createElement("div");
-    msgDiv.className = "chat-message-item mb-2.5";
-    msgDiv.innerHTML = `
-        <div class="d-flex align-items-baseline justify-content-between mb-1">
-            <span class="fw-bold small text-gradient-primary">${username}</span>
-            <span class="text-muted" style="font-size: 0.7rem;">${timeStr}</span>
+    const rowDiv = document.createElement("div");
+    rowDiv.className = `whatsapp-msg-row ${isSelf ? 'self' : 'other'}`;
+    
+    rowDiv.innerHTML = `
+        <div class="whatsapp-bubble">
+            ${!isSelf ? `<span class="whatsapp-sender-name">${escapeHtml(username)}</span>` : ''}
+            <span class="whatsapp-msg-text">${escapeHtml(message)}</span>
+            <span class="whatsapp-msg-meta">
+                ${timeStr}
+                ${isSelf ? `<i class="bi bi-check2-all ticks"></i>` : ''}
+            </span>
         </div>
-        <div class="p-2.5 rounded-3 glass-panel small text-light">${escapeHtml(message)}</div>
     `;
-    area.appendChild(msgDiv);
+    area.appendChild(rowDiv);
     area.scrollTop = area.scrollHeight;
 }
 

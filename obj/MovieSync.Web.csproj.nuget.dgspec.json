@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Sajan\\Desktop\\Moviesync\\MovieSync.Web.csproj": {}
+    "/app/applet/MovieSync.Web.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Sajan\\Desktop\\Moviesync\\MovieSync.Web.csproj": {
+    "/app/applet/MovieSync.Web.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Sajan\\Desktop\\Moviesync\\MovieSync.Web.csproj",
+        "projectUniqueName": "/app/applet/MovieSync.Web.csproj",
         "projectName": "MovieSync.Web",
-        "projectPath": "C:\\Users\\Sajan\\Desktop\\Moviesync\\MovieSync.Web.csproj",
-        "packagesPath": "C:\\Users\\Sajan\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Sajan\\Desktop\\Moviesync\\obj\\",
+        "projectPath": "/app/applet/MovieSync.Web.csproj",
+        "packagesPath": "/root/.nuget/packages/",
+        "outputPath": "/app/applet/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Sajan\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "/root/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
@@ -86,7 +86,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.302/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.302/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.AspNetCore": "(,10.0.32767]",
             "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",

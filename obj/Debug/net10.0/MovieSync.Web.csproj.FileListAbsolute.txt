@@ -199,15 +199,6 @@ C:/Users/Sajan/Desktop/Moviesync/obj/Debug/net10.0/ref/MovieSync.Web.dll
 /app/applet/bin/Debug/net10.0/Microsoft.EntityFrameworkCore.Abstractions.dll
 /app/applet/bin/Debug/net10.0/Microsoft.EntityFrameworkCore.Relational.dll
 /app/applet/bin/Debug/net10.0/Microsoft.EntityFrameworkCore.SqlServer.dll
-/app/applet/bin/Debug/net10.0/Microsoft.Extensions.Caching.Abstractions.dll
-/app/applet/bin/Debug/net10.0/Microsoft.Extensions.Caching.Memory.dll
-/app/applet/bin/Debug/net10.0/Microsoft.Extensions.Configuration.Abstractions.dll
-/app/applet/bin/Debug/net10.0/Microsoft.Extensions.DependencyInjection.dll
-/app/applet/bin/Debug/net10.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll
-/app/applet/bin/Debug/net10.0/Microsoft.Extensions.Logging.dll
-/app/applet/bin/Debug/net10.0/Microsoft.Extensions.Logging.Abstractions.dll
-/app/applet/bin/Debug/net10.0/Microsoft.Extensions.Options.dll
-/app/applet/bin/Debug/net10.0/Microsoft.Extensions.Primitives.dll
 /app/applet/bin/Debug/net10.0/Microsoft.Identity.Client.dll
 /app/applet/bin/Debug/net10.0/Microsoft.Identity.Client.Extensions.Msal.dll
 /app/applet/bin/Debug/net10.0/Microsoft.IdentityModel.Abstractions.dll
@@ -223,7 +214,6 @@ C:/Users/Sajan/Desktop/Moviesync/obj/Debug/net10.0/ref/MovieSync.Web.dll
 /app/applet/bin/Debug/net10.0/System.CodeDom.dll
 /app/applet/bin/Debug/net10.0/System.Configuration.ConfigurationManager.dll
 /app/applet/bin/Debug/net10.0/System.IdentityModel.Tokens.Jwt.dll
-/app/applet/bin/Debug/net10.0/System.Linq.AsyncEnumerable.dll
 /app/applet/bin/Debug/net10.0/System.Management.dll
 /app/applet/bin/Debug/net10.0/System.Memory.Data.dll
 /app/applet/bin/Debug/net10.0/System.Security.Cryptography.ProtectedData.dll
