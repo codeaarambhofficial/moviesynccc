@@ -929,6 +929,7 @@ connection.on("ReceiveRoomState", (state) => {
     }
 
     updateParticipantsList(state.participants || state.Participants);
+    syncWebRtcPeers(state.participants || state.Participants);
     updateHistoryAndFavoritesLists(state.watchHistory || state.WatchHistory || state.history, state.favorites || state.Favorites);
     toggleLoading(false);
 });
@@ -1052,14 +1053,31 @@ connection.on("VideoSought", (time) => {
     setTimeout(() => isIncomingEvent = false, 500);
 });
 
+connection.on("ReceiveWebRtcSignal", async (senderConnectionId, signalType, signalData) => {
+    try {
+        const payload = JSON.parse(signalData);
+        if (signalType === "offer") {
+            await handleWebRtcOffer(senderConnectionId, payload);
+        } else if (signalType === "answer") {
+            await handleWebRtcAnswer(senderConnectionId, payload);
+        } else if (signalType === "ice-candidate") {
+            await handleWebRtcCandidate(senderConnectionId, payload);
+        }
+    } catch (err) {
+        console.error("Error handling WebRTC signal:", err);
+    }
+});
+
 connection.on("UserJoined", (username, participants) => {
     showToast("success", `${username} joined the room! 👋`);
     updateParticipantsList(participants);
+    syncWebRtcPeers(participants);
 });
 
 connection.on("UserLeft", (username, participants) => {
     showToast("info", `${username} left the room.`);
     updateParticipantsList(participants);
+    syncWebRtcPeers(participants);
 });
 
 connection.on("ReceiveMessage", (username, message, timestamp) => {
@@ -1641,23 +1659,204 @@ function triggerFloatingReaction(emoji) {
     setTimeout(() => el.remove(), 2500);
 }
 
-// WebRTC Watch Party Audio/Video Integration
+// WebRTC Watch Party Audio/Video Integration & Serverless P2P
+const rtcConfig = {
+    iceServers: [
+        { urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302", "stun:stun2.l.google.com:19302", "stun:stun3.l.google.com:19302", "stun:stun4.l.google.com:19302"] },
+        { urls: ["stun:global.stun.twilio.com:3478"] }
+    ]
+};
+
+function createSyntheticFallbackStream() {
+    try {
+        const canvas = document.createElement("canvas");
+        canvas.width = 320;
+        canvas.height = 240;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#1e293b";
+        ctx.fillRect(0, 0, 320, 240);
+        ctx.fillStyle = "#818cf8";
+        ctx.font = "bold 18px sans-serif";
+        ctx.fillText("Watch Party Mic/Cam", 50, 125);
+
+        const videoTrack = canvas.captureStream(10).getVideoTracks()[0];
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const dst = audioCtx.createMediaStreamDestination();
+        osc.connect(dst);
+        osc.start();
+        const audioTrack = dst.stream.getAudioTracks()[0];
+        audioTrack.enabled = false;
+
+        return new MediaStream([videoTrack, audioTrack]);
+    } catch (e) {
+        console.warn("Could not create synthetic stream fallback:", e);
+        return null;
+    }
+}
+
 async function startLocalStream() {
     try {
         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         const localVideoEl = document.getElementById("local-video");
-        localVideoEl.srcObject = localStream;
+        if (localVideoEl) localVideoEl.srcObject = localStream;
     } catch (err) {
         console.warn("WebRTC camera/mic access declined or unavailable:", err);
-        // Fallback audio-only or avatar mode if camera is busy/denied
         try {
             localStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
             isCameraOff = true;
             document.getElementById("local-video").style.display = "none";
             document.getElementById("local-video-avatar").style.display = "flex";
         } catch (e) {
-            showToast("info", "Watch party voice/video call disabled (no microphone/camera detected).");
+            console.warn("Using synthetic canvas fallback stream for WebRTC call connection");
+            localStream = createSyntheticFallbackStream();
+            isCameraOff = true;
+            document.getElementById("local-video").style.display = "none";
+            document.getElementById("local-video-avatar").style.display = "flex";
         }
+    }
+}
+
+function getOrCreatePeerConnection(targetConnectionId, targetUsername) {
+    if (peerConnections[targetConnectionId]) {
+        return peerConnections[targetConnectionId];
+    }
+
+    const pc = new RTCPeerConnection(rtcConfig);
+    peerConnections[targetConnectionId] = pc;
+
+    if (localStream) {
+        localStream.getTracks().forEach(track => {
+            pc.addTrack(track, localStream);
+        });
+    }
+
+    pc.onicecandidate = (event) => {
+        if (event.candidate && currentRoom) {
+            connection.invoke("SendWebRtcSignal", currentRoom, targetConnectionId, "ice-candidate", JSON.stringify(event.candidate))
+                .catch(err => console.log("Send ICE error:", err));
+        }
+    };
+
+    pc.ontrack = (event) => {
+        if (event.streams && event.streams[0]) {
+            addOrUpdateRemoteVideo(targetConnectionId, targetUsername, event.streams[0]);
+        }
+    };
+
+    pc.oniceconnectionstatechange = () => {
+        console.log(`ICE Connection state with ${targetConnectionId}: ${pc.iceConnectionState}`);
+        if (pc.iceConnectionState === "disconnected" || pc.iceConnectionState === "failed" || pc.iceConnectionState === "closed") {
+            removeRemoteVideo(targetConnectionId);
+        }
+    };
+
+    return pc;
+}
+
+async function initiateCallWithPeer(targetConnectionId, targetUsername) {
+    try {
+        const pc = getOrCreatePeerConnection(targetConnectionId, targetUsername);
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        if (currentRoom) {
+            await connection.invoke("SendWebRtcSignal", currentRoom, targetConnectionId, "offer", JSON.stringify(offer));
+        }
+    } catch (err) {
+        console.error("Error initiating call with peer:", err);
+    }
+}
+
+async function handleWebRtcOffer(senderConnectionId, offerData) {
+    try {
+        const pc = getOrCreatePeerConnection(senderConnectionId, "Peer");
+        await pc.setRemoteDescription(new RTCSessionDescription(offerData));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        if (currentRoom) {
+            await connection.invoke("SendWebRtcSignal", currentRoom, senderConnectionId, "answer", JSON.stringify(answer));
+        }
+    } catch (err) {
+        console.error("Error handling WebRTC offer:", err);
+    }
+}
+
+async function handleWebRtcAnswer(senderConnectionId, answerData) {
+    try {
+        const pc = peerConnections[senderConnectionId];
+        if (pc) {
+            await pc.setRemoteDescription(new RTCSessionDescription(answerData));
+        }
+    } catch (err) {
+        console.error("Error handling WebRTC answer:", err);
+    }
+}
+
+async function handleWebRtcCandidate(senderConnectionId, candidateData) {
+    try {
+        const pc = peerConnections[senderConnectionId];
+        if (pc) {
+            await pc.addIceCandidate(new RTCIceCandidate(candidateData));
+        }
+    } catch (err) {
+        console.error("Error adding ICE candidate:", err);
+    }
+}
+
+function syncWebRtcPeers(participants) {
+    if (!participants || !connection || !connection.connectionId) return;
+
+    participants.forEach(p => {
+        if (p.connectionId && p.connectionId !== connection.connectionId) {
+            if (!peerConnections[p.connectionId]) {
+                initiateCallWithPeer(p.connectionId, p.username);
+            }
+        }
+    });
+
+    const currentIds = participants.map(p => p.connectionId);
+    Object.keys(peerConnections).forEach(id => {
+        if (!currentIds.includes(id)) {
+            removeRemoteVideo(id);
+        }
+    });
+}
+
+function addOrUpdateRemoteVideo(peerId, username, stream) {
+    let box = document.getElementById(`peer-box-${peerId}`);
+    if (!box) {
+        box = document.createElement("div");
+        box.className = "webrtc-video-box glass-panel remote-video-box";
+        box.id = `peer-box-${peerId}`;
+        const initial = (username || 'P').charAt(0).toUpperCase();
+
+        box.innerHTML = `
+            <video id="remote-video-${peerId}" autoplay playsinline class="webrtc-video-element"></video>
+            <div class="webrtc-video-label">${username || 'Participant'}</div>
+            <div class="webrtc-video-avatar" id="remote-avatar-${peerId}" style="display: none;">${initial}</div>
+            <div class="webrtc-mic-badge bg-danger text-white rounded-circle p-1 d-none" id="remote-mic-badge-${peerId}">
+                <i class="bi bi-mic-mute-fill"></i>
+            </div>
+        `;
+
+        const grid = document.getElementById("webrtc-video-grid");
+        if (grid) grid.appendChild(box);
+    }
+
+    const videoEl = document.getElementById(`remote-video-${peerId}`);
+    if (videoEl && videoEl.srcObject !== stream) {
+        videoEl.srcObject = stream;
+        videoEl.play().catch(e => console.log("Remote video play caught:", e));
+    }
+}
+
+function removeRemoteVideo(peerId) {
+    const box = document.getElementById(`peer-box-${peerId}`);
+    if (box) box.remove();
+    if (peerConnections[peerId]) {
+        try { peerConnections[peerId].close(); } catch (e) {}
+        delete peerConnections[peerId];
     }
 }
 
@@ -1681,6 +1880,10 @@ document.getElementById("webrtc-toggle-mic").addEventListener("click", () => {
         icon.className = "bi bi-mic-fill";
         text.innerText = "Mute";
         badge.classList.add("d-none");
+    }
+
+    if (currentRoom) {
+        connection.invoke("UpdateMediaState", currentRoom, isMicMuted, isCameraOff).catch(e => console.log(e));
     }
 });
 
@@ -1708,6 +1911,10 @@ document.getElementById("webrtc-toggle-cam").addEventListener("click", () => {
         videoEl.style.display = "block";
         avatarEl.style.display = "none";
     }
+
+    if (currentRoom) {
+        connection.invoke("UpdateMediaState", currentRoom, isMicMuted, isCameraOff).catch(e => console.log(e));
+    }
 });
 
 function cleanupWebRtc() {
@@ -1716,7 +1923,7 @@ function cleanupWebRtc() {
         localStream = null;
     }
     Object.keys(peerConnections).forEach(id => {
-        peerConnections[id].close();
+        try { peerConnections[id].close(); } catch (e) {}
         delete peerConnections[id];
     });
     document.querySelectorAll(".remote-video-box").forEach(el => el.remove());
