@@ -1967,12 +1967,6 @@ const rtcConfig = {
             ],
             username: "openrelayproject",
             credential: "openrelayproject"
-        },
-        {
-            urls: [
-                "turn:global.turn.twilio.com:3478?transport=udp",
-                "turn:global.turn.twilio.com:3478?transport=tcp"
-            ]
         }
     ],
     iceCandidatePoolSize: 10,
@@ -2087,7 +2081,13 @@ function getOrCreatePeerConnection(targetConnectionId, targetUsername) {
     }
 
     console.log(`[WebRTC Init] Creating RTCPeerConnection for target: ${targetConnectionId} (${targetUsername})`);
-    const pc = new RTCPeerConnection(rtcConfig);
+    let pc;
+    try {
+        pc = new RTCPeerConnection(rtcConfig);
+    } catch (e) {
+        console.error("[WebRTC Init] Error creating RTCPeerConnection:", e);
+        return null;
+    }
     const peerObj = {
         pc: pc,
         pendingCandidates: [],
@@ -2269,6 +2269,7 @@ async function initiateCallWithPeer(targetConnectionId, targetUsername) {
     try {
         console.log(`[WebRTC Offer] Initiating offer to peer: ${targetConnectionId}`);
         const pc = getOrCreatePeerConnection(targetConnectionId, targetUsername);
+        if (!pc) return;
         const peerObj = peerConnections[targetConnectionId];
         if (peerObj) peerObj.isMakingOffer = true;
 
@@ -2318,6 +2319,7 @@ async function handleWebRtcOffer(senderConnectionId, offerData) {
         console.log(`[WebRTC Offer Received] From ${senderConnectionId}`);
         const isPolite = connection.connectionId > senderConnectionId;
         let pc = getOrCreatePeerConnection(senderConnectionId, "Participant");
+        if (!pc) return;
         const peerObj = peerConnections[senderConnectionId];
 
         const offerCollision = (pc.signalingState !== "stable" || peerObj.isMakingOffer);
